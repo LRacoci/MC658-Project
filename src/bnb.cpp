@@ -18,8 +18,13 @@ using namespace std;
 
 #define MAX(a,b) ( (a) < (b) ? (b) : (a) )
 #define MIN(a,b) ( (a) > (b) ? (b) : (a) )
-#define EVERY(i, s, e) (i = (s); i < (e); i++)
 
+#define INF INT_MAX
+
+#define EVERY(i, s, e) (i = (s); i < (e); i++)
+#define EVERY_OTHER(i, s, e, p) (i = (s); i < (e); i+=p)
+
+#define MAT(T) vector < vector <T> >
 
 // Funções para depurar
 template <typename T, typename S>
@@ -50,12 +55,18 @@ ostream& operator<<(ostream& os, const vector <T>& vec) {
 
 typedef vector < list < pair <int, int> > > AdjList;
 
+int bestSoltion(MAT(int) T, vector<int> cost, vector<int> day, int& dualLimit){
+	int n = day.size();
+	int m = cost.size();
+	dualLimit = m*n + 1;
+	return n*m;
+}
 
 int main(){
 	int n /*number of scenes*/, m /*number of actors*/;
 	scanf("%d\n%d", &n,&m);
 	int i,j;
-	vector< vector <int> > T;
+	MAT(int) T;
 	T.resize(m);
 	for EVERY(i, 0,m) {
 		T[i].resize(n);
@@ -64,12 +75,12 @@ int main(){
 		}
 	}
 
-	vector< int > cost;
+	vector < int > cost;
 	cost.resize(m);
 	for EVERY(i, 0,m) {
 		scanf("%d", &cost[i]);
 	}
-
+	/*
 	for EVERY(i,0,m) {
 		printf("%4d", T[i][0]);
 		for EVERY(j, 1,n) {
@@ -82,9 +93,21 @@ int main(){
 	for EVERY(i, 1,m) {
 		printf(" %4d", cost[i]);
 	}
+	*/
+	vector < int > day;
+	day.resize(n);
+	int dualLimit = INF;
+	int totalCost = bestSoltion(T, cost, day, dualLimit);
+	printf("%d", day[0]);
+	
+	for EVERY(j, 1,n) {
+		printf(" %d", day[j]);	
+	}
 	printf("\n");
 
+	printf("%d\n%d", totalCost, dualLimit);	
 
+	printf("\n");
 }
 
 
