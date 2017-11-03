@@ -92,9 +92,11 @@ public:
 	Problem * p;
 	int level;
 	int l,r;
+	bool bounded;
 	int  boundVal;
 	bool complete;
 	vector < int > day;
+	vector < bool > chosen;
 	vector < DaySchedule > offspring;
 	DaySchedule * dad;
 
@@ -126,6 +128,7 @@ public:
 
 	int bestCost;
 
+
 	Problem(){
 		bestCost = INF;
 	}
@@ -140,9 +143,11 @@ public:
 	DaySchedule::DaySchedule(Problem * p): 
 		p(p), 
 		day(p->n, -1), 
+		chosen(p->n, false),
 		left(p->m, -1), 
 		right(p->m, -1)
 	{
+		bounded = false;
 		level = 0;
 		boundVal = INF;
 		complete = false;
@@ -156,9 +161,11 @@ public:
 		dad(dad), 
 		p(dad->p), 
 		day(dad->day),
+		chosen(dad->chosen),
 		left(dad->left), 
 		right(dad->right)
 	{
+		bounded = false;
 		level = dad->level + 1;
 		if (level % 2 == 1){
 			r = dad->r;
@@ -166,8 +173,8 @@ public:
 			day[l-1] = choice;
 			
 			for (int i = 0; i < p->m; i++){
-				if (left[i] == -1 and p->T[i][choice]){
-					left[i] = choice;
+				if (left[i] == -1 and p->T[i][day[l-1]]){
+					left[i] = l-1;
 				}
 			}
 		} else {
@@ -177,7 +184,7 @@ public:
 			
 			for (int i = 0; i < p->m; i++){
 				if (right[i] == -1 and p->T[i][choice]){
-					right[i] = choice;
+					right[i] = r;
 				}
 			}
 		}
@@ -191,26 +198,39 @@ public:
 		return day[j];
 	}
 	bool DaySchedule::operator< (const DaySchedule other) const{
-		return boundVal < other.boundVal;
+		//return (level == other.level) ? (boundVal < other.boundVal) : (level < other.level);
+		return boundVal < other.boundVal or (boundVal == other.boundVal and level < other.level);
+		//return level < other.level or (level == other.level and boundVal < other.boundVal);
 	}
 	void DaySchedule::brew(){
 		return;
 	}
 	int DaySchedule::bound(){
-		if (boundVal == INF) {
-			for(int i = 0; i < p->m; i++){
-				// if i in A(P) <==> di != none != ei
-				if(left[i] != -1 and right[i] != -1){
-					boundVal += p->cost[i] * (right[i] - left[i] + 1 - p->participation[i]);
-				}
+		if (bounded) {
+			return boundVal;
+		}
+		bounded = true;
+
+		bool flag = false;
+		boundVal = 0;
+		for(int i = 0; i < p->m; i++){
+			// if i in A(P) <==> di != none != ei
+			if(left[i] != -1 and right[i] != -1){
+				boundVal += p->cost[i] * (right[i] - left[i] + 1 - p->participation[i]);
+				flag = true;
 			}
 		}
+		if (flag == false){
+			boundVal = INF;
+		}
+
 		return boundVal;
 	}
 	vector < DaySchedule > & DaySchedule::branch(){
 		int k = 0;
 		for (int j = 0; j < p->m; j++){
-			if (day[j] == -1){
+			if (not chosen[j]){
+				chosen[j] = true;
 				DaySchedule child(this, j);
 				offspring.push_back(child);
 				cout << "Branch with j = " << j;
