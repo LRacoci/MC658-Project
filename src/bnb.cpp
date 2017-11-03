@@ -161,6 +161,7 @@ public:
 	{
 		level = dad->level + 1;
 		if (level % 2 == 1){
+			r = dad->r;
 			l = dad->l + 1;
 			day[l-1] = choice;
 			
@@ -170,6 +171,7 @@ public:
 				}
 			}
 		} else {
+			l = dad->l;
 			r = dad->r - 1;
 			day[r] = choice;
 			
