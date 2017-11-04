@@ -20,7 +20,7 @@ public:
 	int next;
 	int boundVal;
 	vector < int > days;
-	vector< int > chosen;
+	vector < int > chosen;
 
 	void init(int next, int boundVal, int n) {
 		this->next = next;
@@ -114,9 +114,9 @@ istream & operator>> (istream& is, Problem & p){
 ostream& operator<<(ostream& os, const Problem & p) {  
 	int j;
 
-	os << p.best.day[0];
-	for (j = 1; j < p.best.day.size(); j++) {
-		os << ' ' << p.best.day[j];
+	os << p.best.days[0];
+	for (j = 1; j < p.best.days.size(); j++) {
+		os << ' ' << p.best.days[j];
 	}
 	os << endl;
 
