@@ -5,117 +5,40 @@
 */
 
 #include <vector>
-#include <list>
-#include <stdio.h>
 #include <queue>
 #include <iostream>
-#include <bits/stdc++.h>
 #include <limits.h>
-
-
 
 using namespace std;
 
-#define MAX(a,b) ( (a) < (b) ? (b) : (a) )
-#define MIN(a,b) ( (a) > (b) ? (b) : (a) )
-
+/* Definicoes de macros que facilitam o desenvolvimento do codigo */
 #define INF INT_MAX
-
-#define EVERY_INDEX(i, s, e) (int i = (s); i < (e); i++)
-#define EVERY_OTHER_INDEX(i, s, e, p) (int i = (s); i < (e); i+=p)
-
 #define MAT(T) vector < vector <T> >
 
-#define elif else if
-
-
-typedef enum _ {NOWHERE, LEFT, RIGHT} Position;
-
-// Funções para depurar
-template <typename T, typename S>
-ostream& operator<<(ostream& os, const pair <T,S>& p) {  
-	return os << '(' << p->first << ' ' << p->second << ')';  
-} 
-template <typename T>
-ostream& operator<<(ostream& os, const list <T>& lst) {  
-	typename list<T>::const_iterator it = lst.begin(), end = lst.end();
-	os << '[' << *it;
-	for(it++ ; it != end ; ++it){
-		os << ' ' << *it;
-	}
-	os << ']';
-	return os;  
-}
-
-template <typename T>
-ostream& operator<<(ostream& os, const vector <T>& vec) {  
-	os << '{' << endl;
-	for(unsigned i = 0; i < vec.size(); i++){
-
-		os << '\t' << i << ": " << vec[i] << endl;
-	}
-	os << '}' << endl;
-	return os;  
-} 
-
-/*
-
-
-B&B(k); (* considerando problema de maximização *)
-	Nós-ativos ← {nó raiz}; 
-	melhor-solução ← {}; 
-	z ← −∞;
-	Enquanto (Nós-ativos não está vazia) faça
-		Escolher um nó k em Nós-ativos para ramificar;
-		Remover k de Nós-ativos;
-		Gerar os filhos de k: n1, . . . , nq e computar os zni correspondentes;
-		(* zni ← −∞ se restriç˜oes impl´ıcitas não são satisfeitas *)
-		Para j = 1 at´e q faça
-			se (zni ≤ z) então amadurecer o nó ni;
-			se não
-				Se (ni representa uma solução completa) então
-				z ← zni; 
-				melhor-solução ← {solução de ni};
-			se não adicionar ni à lista Nós-ativos.
-			fim-se
-		fim-para
-	fim-enquanto
-fim.
-
-
-*/
-
-class Problem;
-
-class DaySchedule {
+class Schedule {
 public:
-	Problem * p;
-	int level;
-	int l,r;
-	bool bounded;
-	int  boundVal;
-	bool complete;
-	vector < int > day;
-	vector < bool > chosen;
-	vector < DaySchedule > offspring;
-	DaySchedule * dad;
+	int next;
+	int boundVal;
+	vector < int > days;
+	vector < int > chosen;
 
-	vector < int > left;
-	vector < int > right;
-	
-	DaySchedule(Problem * p);
+	void init(int next, int boundVal, int n) {
+		this->next = next;
+		this->boundVal = boundVal;
+		days.resize(n, 0);
+		chosen.resize(n, false);
+	}
 
-	DaySchedule(DaySchedule * dad, int choice) ;
-
-	int operator[] (int j) const;
-	bool operator< ( const DaySchedule other) const ;
-	void brew();
-	int bound();
-	vector < DaySchedule > & branch();
 };
 
-ostream& operator<<(ostream& os, const DaySchedule& s);
+/* Funcao de comparacao para se obter um heap de minimo */
+struct compare {  
+	bool operator()(const Schedule & l, const Schedule & r) {  
+		return l.boundVal > r.boundVal;
+	}  
+};
 
+/* Classe que define o problema que esta sendo resolvido e guarda as suas informacoes */
 class Problem {
 public:
 	int n, // number of scenes
@@ -123,255 +46,96 @@ public:
 
 	MAT(int) T; // m x n
 	vector < int > cost;
-	
-	vector < int > participation;
-
+	vector < int > part;
 	int bestCost;
-
+	Schedule best;
 
 	Problem(){
 		bestCost = INF;
 	}
 
-	void compute_participation();
+	/* Calcula os s_i's do enunciado */
+	void compute_part() {
+		part.resize(m, 0);
+		for(int i = 0; i < m; i++){
+			for (int j = 0; j < n; j++){
+				part[i] += T[i][j];
+			}
+		}
+	}
 	
-	DaySchedule solve();
+	/* Funcao que executa o branch and bound */
+	void solve(){
+		//s_i's do enunciado
+		compute_part();
+
+		/* Fila de prioridade que contera os nos ativos */
+		best.init(0, 0, n);
+		priority_queue<Schedule, vector<Schedule>, compare > pq;
+		pq.push(best);
+
+		/* Explora os nos ativos */
+		while (not pq.empty()) {
+			/* Retira o melhor no da fila */
+			Schedule k = pq.top();
+			pq.pop();
+
+			/* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
+			
+
+		}
+
+	}
 
 };
 
-
-	DaySchedule::DaySchedule(Problem * p): 
-		p(p), 
-		day(p->n, -1), 
-		chosen(p->n, false),
-		left(p->m, -1), 
-		right(p->m, -1)
-	{
-		bounded = false;
-		level = 0;
-		boundVal = INF;
-		complete = false;
-		l = 0;
-		r = p->n;
-		dad = this;
-
-	}
-
-	DaySchedule::DaySchedule(DaySchedule * dad, int choice): 
-		dad(dad), 
-		p(dad->p), 
-		day(dad->day),
-		chosen(dad->chosen),
-		left(dad->left), 
-		right(dad->right)
-	{
-		bounded = false;
-		level = dad->level + 1;
-		if (level % 2 == 1){
-			r = dad->r;
-			l = dad->l + 1;
-			day[l-1] = choice;
-			
-			for (int i = 0; i < p->m; i++){
-				if (left[i] == -1 and p->T[i][day[l-1]]){
-					left[i] = l-1;
-				}
-			}
-		} else {
-			l = dad->l;
-			r = dad->r - 1;
-			day[r] = choice;
-			
-			for (int i = 0; i < p->m; i++){
-				if (right[i] == -1 and p->T[i][choice]){
-					right[i] = r;
-				}
-			}
-		}
-		complete = level == p->n;
-		boundVal = INF;
-		boundVal = bound();
-
-	}
-
-	int DaySchedule::operator[] (int j) const{
-		return day[j];
-	}
-	bool DaySchedule::operator< (const DaySchedule other) const{
-		//return (level == other.level) ? (boundVal < other.boundVal) : (level < other.level);
-		return boundVal < other.boundVal or (boundVal == other.boundVal and level < other.level);
-		//return level < other.level or (level == other.level and boundVal < other.boundVal);
-	}
-	void DaySchedule::brew(){
-		return;
-	}
-	int DaySchedule::bound(){
-		if (bounded) {
-			return boundVal;
-		}
-		bounded = true;
-
-		bool flag = false;
-		boundVal = 0;
-		for(int i = 0; i < p->m; i++){
-			// if i in A(P) <==> di != none != ei
-			if(left[i] != -1 and right[i] != -1){
-				boundVal += p->cost[i] * (right[i] - left[i] + 1 - p->participation[i]);
-				flag = true;
-			}
-		}
-		if (flag == false){
-			boundVal = INF;
-		}
-
-		return boundVal;
-	}
-	vector < DaySchedule > & DaySchedule::branch(){
-		int k = 0;
-		for (int j = 0; j < p->m; j++){
-			if (not chosen[j]){
-				chosen[j] = true;
-				DaySchedule child(this, j);
-				offspring.push_back(child);
-				cout << "Branch with j = " << j;
-				cout << " this->level = " << this->level;
-				cout << endl;
-				cout << offspring[k];
-				k++;
-			}
-		}
-		return offspring;
-	}
-
-/*
-ostream& operator<<(ostream& os, const DaySchedule& s) {  
-	os << s[0];
-	for EVERY_INDEX(j, 1,s.p->n) {
-		//printf(" %d", s[j]);
-		os << ' ' << s[j];
-	}
-	os << endl;
-
-	os << s.p->bestCost << endl << s.boundVal << endl;
-
-	return os;  
-} 
-*/
-
-// Debuging
-ostream& operator<<(ostream& os, const DaySchedule& s) {
-	/*
-	Actors 	left 	Cenas	right
-	*/
-	os << "Actors\tleft";
-	for EVERY_INDEX(j, 0,s.p->n) {
-		os << '\t';
-		if (s[j] != -1){
-			os << s[j];
-		}
-	}
-	os << "\tright\tparticipation\tcost";
-	os << endl;
-	for EVERY_INDEX(i, 0, s.p->m){
-		os << i << '\t' << s.left[i];
-		for EVERY_INDEX(j, 0,s.p->n) {
-			os << '\t';
-			if (s[j] != -1){
-				os << s.p->T[i][s[j]];
-			}
-		}
-		os << '\t' << s.right[i];
-		os << '\t' << s.p->participation[i];
-		os << '\t' << s.p->cost[i] << endl;
-	}
-
-	os << s.p->bestCost << endl << s.boundVal << endl;
-
-	return os;  
-}
-
-	void Problem::compute_participation(){
-		participation.resize(m, 0);
-		for(int i = 0; i < m; i++){
-			for (int j = 0; j < n; j++){
-				participation[i] += T[i][j];
-			}
-		}
-	}
-
-	DaySchedule Problem::solve(){
-		//s_i's do enunciado
-		compute_participation();
-			
-		DaySchedule best(this);
-		priority_queue<DaySchedule> pq;
-		pq.push(best);
-
-		while(not pq.empty()){
-			DaySchedule dad = pq.top();
-			pq.pop();
-			// Branch
-			vector < DaySchedule > & offspring = dad.branch();
-			// Bound
-			for(int j = 0; j < offspring.size(); j++){
-				DaySchedule child = offspring[j];
-				int boundVal = child.bound();
-				if (boundVal > bestCost){
-					child.brew();
-				} else if (child.complete) {
-					bestCost = boundVal;
-					best = child;
-				} else {
-					pq.push(child);
-				}
-
-			}
-
-		}
-		return best;
-	}
-
+/* Funcao que faz a entrada dos dados e os coloca dentro de uma classe problema */
 istream & operator>> (istream& is, Problem & p){
+	int i, j;
+
 	is >> p.n >> p.m;
 	p.T.resize(p.m);
-	for EVERY_INDEX(i, 0,p.m) {
+	for (i = 0; i < p.m; i++) {
 		p.T[i].resize(p.n);
-		for EVERY_INDEX(j, 0,p.n){
-			//scanf("%d", &T[i][j]);
+		for (j = 0; j < p.n; j++){
 			is >> p.T[i][j];
 		}
 	}
+
 	p.cost.resize(p.m);
-	for EVERY_INDEX(i, 0,p.m) {
-		//scanf("%d", &cost[i]);
+	for (i = 0; i < p.m; i++) {
 		is >> p.cost[i];
 	}
+
 	return is;
-} 
+}
+
+/* Funcao que faz a saida dos dados calculados pelo problema */
+ostream& operator<<(ostream& os, const Problem & p) {  
+	int j;
+
+	os << p.best.days[0];
+	for (j = 1; j < p.best.days.size(); j++) {
+		os << ' ' << p.best.days[j];
+	}
+	os << endl;
+
+	os << p.bestCost << endl << p.best.boundVal << endl;
+
+	return os;  
+}
 
 int main(){
 	Problem p;
+
+	/* Le os dados do problema */
 	cin >> p;
-	cout << p.solve();
-	/*
-	for EVERY_INDEX(i,0,m) {
-		printf("%4d", T[i][0]);
-		for EVERY_INDEX(j, 1,n) {
-			printf(" %4d", T[i][j]);
-		}
-		printf("\n");
-	}
 
-	printf("%4d", cost[0]);
-	for EVERY_INDEX(i, 1,m) {
-		printf(" %4d", cost[i]);
-	}
-	*/
-	
+	/* Resolve o problema */
+	p.solve();
+
+	/* Imprime os resultados */
+	cout << p;
+
+	return 0;
 }
-
-
-
-
-
-
