@@ -31,6 +31,8 @@ public:
 	Problem * p; // Ponteiro para a classe problema
 	vector < Schedule > offspring; // Cria os filhos do no atual
 
+	Schedule() {}
+
 	/* Cria o objeto inicial de Schedule */
 	Schedule(Problem * p);
 
@@ -62,7 +64,7 @@ public:
 	vector < int > cost; // Vetor com os custos das cenas
 	vector < int > part; // Vetor com a participacao dos atores
 	int bestCost; // Melhor custo encontrado
-	Schedule * best; // Melhor solucao encontrada
+	Schedule best; // Melhor solucao encontrada
 
 	Problem() {
 		bestCost = INF;
@@ -196,7 +198,7 @@ void Problem::solve() {
 			if (offspring[j].boundVal < bestCost) {
 				if (offspring[j].complete) {
 					bestCost = offspring[j].boundVal;
-					best = &offspring[j];
+					best = offspring[j];
 				} else {
 					pq.push(offspring[j]);
 				}
@@ -233,13 +235,13 @@ istream & operator>> (istream& is, Problem & p){
 ostream& operator<<(ostream& os, const Problem & p) {  
 	int j;
 
-	os << p.best->days[0];
-	for (j = 1; j < p.best->days.size(); j++) {
-		os << ' ' << p.best->days[j];
+	os << p.best.days[0] + 1;
+	for (j = 1; j < p.best.days.size(); j++) {
+		os << ' ' << p.best.days[j] + 1;
 	}
 	os << endl;
 
-	os << p.bestCost << endl << p.best->boundVal << endl;
+	os << p.bestCost << endl << p.best.boundVal << endl;
 
 	return os;  
 }
@@ -249,7 +251,7 @@ int main(){
 
 	/* Le os dados do problema */
 	cin >> p;
-
+	
 	/* Resolve o problema */
 	p.solve();
 
