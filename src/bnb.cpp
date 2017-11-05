@@ -115,7 +115,6 @@ Schedule::Schedule(Schedule * dad, int choice) :
 		for (int i = 0; i < p->m; i++) {
 			if (first[i] == -1 and p->T[i][choice]){
 				first[i] = l - 1;
-				break;
 			}
 		}
 
@@ -127,7 +126,6 @@ Schedule::Schedule(Schedule * dad, int choice) :
 		for (int i = 0; i < p->m; i++) {
 			if (last[i] == -1 and p->T[i][choice]){
 				last[i] = r + 1;
-				break;
 			}
 		}
 
