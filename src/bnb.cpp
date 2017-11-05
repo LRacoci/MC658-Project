@@ -152,7 +152,7 @@ void Schedule::bound() {
 
 	for (int i = 0; i < p->m; i++) {
 		// if i in A(P) <==> di != none != ei
-		if (first[i] != -1 and last[i] != -1) {
+		if (first[i] < p->n and last[i] >= 0) {
 			val += p->cost[i] * (last[i] - first[i] + 1 - p->part[i]);
 		}
 	}
