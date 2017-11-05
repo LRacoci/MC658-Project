@@ -195,7 +195,7 @@ public:
 		boundVal = 0;
 		for(int i = 0; i < p->m; i++){
 			// if i in A(P) <==> di != none != ei
-			if(first[i] < p->m and last[i] >= 0){
+			if(first[i] < p->n and last[i] >= 0){
 				boundVal += p->cost[i] * (last[i] - first[i] + 1 - p->participation[i]);
 				flag = true;
 			}
