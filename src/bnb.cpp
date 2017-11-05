@@ -84,7 +84,7 @@ Schedule::Schedule(Problem * p) {
 	depth = 0;
 	l = 0;
 	r = p->n - 1;
-	boundVal = INF;
+	boundVal = 0;
 	complete = false;
 	days.resize(p->n, -1);
 	chosen.resize(p->n, false);
@@ -186,21 +186,24 @@ void Problem::solve() {
 		Schedule k = pq.top();
 		pq.pop();
 
-		/* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
-		vector < Schedule > & offspring = k.branch();
-		
-		/* Trata cada filho separadamente */
-		for (int j = 0; j < offspring.size(); j++){
-			offspring[j].bound();
-			if (offspring[j].boundVal < bestCost) {
-				if (offspring[j].complete) {
-					bestCost = offspring[j].boundVal;
-					best = offspring[j];
-				} else {
-					pq.push(offspring[j]);
+		/* Checa se o no atual pode dar uma solucao melhor
+		 * do que a melhor encontrada ate o momento */
+		if (k.boundVal < bestCost) {
+			/* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
+			vector < Schedule > & offspring = k.branch();
+			/* Trata cada filho separadamente */
+			for (int j = 0; j < offspring.size(); j++){
+				offspring[j].bound();
+				if (offspring[j].boundVal < bestCost) {
+					if (offspring[j].complete) {
+						bestCost = offspring[j].boundVal;
+						best = offspring[j];
+					} else {
+						pq.push(offspring[j]);
+					}
 				}
-			}
 
+			}
 		}
 
 	}
