@@ -88,7 +88,7 @@ Schedule::Schedule(Problem * p) {
 	complete = false;
 	days.resize(p->n, -1);
 	chosen.resize(p->n, false);
-	first.resize(p->m, -1);
+	first.resize(p->m, p->n);
 	last.resize(p->m, -1);
 }
 
@@ -107,28 +107,27 @@ Schedule::Schedule(Schedule * dad, int choice) :
 	/* Checa o lado do vetor que a nova escolha sera inserida,
 	 * atualiza os vetores que indicam o primeiro e ultimo dia
 	 * de cada ator e atualiza os indices direito e esquerdo */
-	if (depth % 2 == 1) {
+	int chosen_day;
+	if (depth % 2 == 1){
 		r = dad->r;
 		l = dad->l + 1;
-		days[l - 1] = choice;
-
-		for (int i = 0; i < p->m; i++) {
-			if (first[i] == -1 and p->T[i][choice]){
-				first[i] = l - 1;
-			}
-		}
-
+		chosen_day = l - 1;
 	} else {
 		l = dad->l;
 		r = dad->r - 1;
-		days[r + 1] = choice;
-		
-		for (int i = 0; i < p->m; i++) {
-			if (last[i] == -1 and p->T[i][choice]){
-				last[i] = r + 1;
+		chosen_day = r + 1;
+	}
+
+	days[chosen_day] = choice;
+	for (int i = 0; i < p->m; i++){
+		if (p->T[i][choice]){
+			if (chosen_day < first[i]){
+				first[i] = chosen_day;
+			}
+			if (chosen_day > last[i]){
+				last[i] = chosen_day;
 			}
 		}
-
 	}
 
 }
