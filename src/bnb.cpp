@@ -103,6 +103,7 @@ Schedule::Schedule(Schedule * dad, int choice) :
 	/* Incrementa o nivel do no atual em relacao ao seu superior */
 	depth = dad->depth + 1;
 	complete = depth == p->n;
+	chosen[choice] = true;
 
 	/* Checa o lado do vetor que a nova escolha sera inserida,
 	 * atualiza os vetores que indicam o primeiro e ultimo dia
@@ -137,7 +138,6 @@ vector < Schedule > & Schedule::branch() {
 
 	for (int j = 0; j < p->n; j++){
 		if (not chosen[j]) {
-			chosen[j] = true;
 			Schedule child(this, j);
 			offspring.push_back(child);
 		}
@@ -152,7 +152,7 @@ void Schedule::bound() {
 
 	for (int i = 0; i < p->m; i++) {
 		// if i in A(P) <==> di != none != ei
-		if (first[i] < p->n and last[i] >= 0) {
+		if (first[i] <= l and last[i] >= r) {
 			val += p->cost[i] * (last[i] - first[i] + 1 - p->part[i]);
 		}
 	}
@@ -185,7 +185,7 @@ void Problem::solve() {
 		/* Retira o melhor no da fila */
 		Schedule k = pq.top();
 		pq.pop();
-
+		
 		/* Checa se o no atual pode dar uma solucao melhor
 		 * do que a melhor encontrada ate o momento */
 		if (k.boundVal < bestCost) {

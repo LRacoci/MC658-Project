@@ -72,6 +72,13 @@ int main() {
 		}
 	}
 
+	for (i = 0; i < m; i++) {
+		for (j = 0; j < n; j++) {
+			cout << P[i][j] << " ";
+		}
+		cout << endl;
+	}
+
 	cout << c << endl;
 
 	return 0;
