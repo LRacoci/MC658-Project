@@ -233,11 +233,18 @@ istream & operator>> (istream& is, Problem & p){
 
 /* Funcao que faz a saida dos dados calculados pelo problema */
 ostream& operator<<(ostream& os, const Problem & p) {  
-	int j;
+	int j, tam;
+	vector < int > scenes;
 
-	os << p.best.days[0] + 1;
-	for (j = 1; j < p.best.days.size(); j++) {
-		os << ' ' << p.best.days[j] + 1;
+	tam = p.best.days.size();
+	scenes.resize(tam);
+	for (j = 0; j < tam; j++) {
+		scenes[p.best.days[j]] = j;
+	}
+
+	os << scenes[0] + 1;
+	for (j = 1; j < scenes.size(); j++) {
+		os << ' ' << scenes[j] + 1;
 	}
 	os << endl;
 

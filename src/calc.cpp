@@ -11,6 +11,7 @@ int main() {
 	int i, j, n, m;
 	MAT(int) T, P;
 	vector < int > cost;
+	vector < int > out;
 	vector < int > sol;
 	vector < int > part;
 	int c = 0;
@@ -29,10 +30,15 @@ int main() {
 		cin >> cost[i];
 	}
 
+	out.resize(n);
+	for (i = 0; i < n; i++) {
+		cin >> out[i];
+		out[i] -= 1;
+	}
+
 	sol.resize(n);
 	for (i = 0; i < n; i++) {
-		cin >> sol[i];
-		sol[i] -= 1;
+		sol[out[i]] = i;
 	}
 
 	P.resize(m);
