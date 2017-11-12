@@ -3,6 +3,7 @@
 	Lucas Alves Racoci (156331)
 	Luiz Fernando Fonseca (156475)
 */
+#include <stdio.h>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
@@ -183,12 +184,11 @@ class Schedule {
         atualiza_solucao(scenes, bestCost);
     }
 };
-
 Schedule best;      // Melhor solucao encontrada
 
 /* Funcao de comparacao para se obter um heap de minimo */
 struct compare {
-    bool operator()(const Schedule &l, const Schedule &r) const{
+    bool operator()(const Schedule &l, const Schedule &r){
         return l.boundVal > r.boundVal;
     }
 };
@@ -233,26 +233,28 @@ void solve(){
 }
 
 /* Funcao que faz a entrada dos dados e os coloca dentro de uma classe problema */
-void le_entrada(){
+void le_entrada(FILE * inp){
     int i, j;
-
-    cin >> n >> m;
+    //cin >> n >> m;
+    fscanf(inp, "%d\n%d", &n,&m);
     T.resize(m);
     for (i = 0; i < m; i++){
         T[i].resize(n);
         for (j = 0; j < n; j++) {
-            cin >> T[i][j];
+            //cin >> T[i][j];
+            fscanf(inp, "%d",&T[i][j]);
         }
     }
 
     cost.resize(m);
     for (i = 0; i < m; i++) {
-        cin >> cost[i];
+        //cin >> cost[i];
+        fscanf(inp, "%d",&cost[i]);
     }
 
 }
 
-int main(){
+int main(int argc, char * argv[]){
     // Registra a funcao que trata o sinal
     signal(SIGINT, interrompe);
 
@@ -260,8 +262,15 @@ int main(){
     // solucao, utilize a funcao atualiza_solucao para atualizar as
     // variaveis globais.
 
+    if (not 1 < argc){
+        exit(1);
+    }
+
+    FILE * inp = fopen(argv[1], "r");
+
+
     /* Le os dados do problema */
-    le_entrada();
+    le_entrada(inp);
 
     /* Resolve o problema */
     solve();
