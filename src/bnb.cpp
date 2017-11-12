@@ -94,7 +94,7 @@ class Schedule {
     vector<int> last;           // Indica o ultimo dia de cada ator
     vector<Schedule> offspring; // Cria os filhos do no atual
 
-    /* Cria o objeto inicial de Schedule */
+    /* Cria o objeto inicial (raiz) de Schedule */
     Schedule(){
         depth = 0;
         l = 0;
@@ -182,12 +182,13 @@ class Schedule {
         }
         atualiza_solucao(scenes, bestCost);
     }
-} best;
-//Schedule best;      // Melhor solucao encontrada
+};
+
+Schedule best;      // Melhor solucao encontrada
 
 /* Funcao de comparacao para se obter um heap de minimo */
 struct compare {
-    bool operator()(const Schedule &l, const Schedule &r){
+    bool operator()(const Schedule &l, const Schedule &r) const{
         return l.boundVal > r.boundVal;
     }
 };
