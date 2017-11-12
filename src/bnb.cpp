@@ -30,8 +30,11 @@ void imprime_saida() {
     // tais que o j-esimo inteiro indica o dia de gravacao da cena j!
     for (int j = 0; j < melhor_solucao.size(); j++)
         cout << melhor_solucao[j] << " ";
+    
+        cout << endl;
     // A segunda linha contem o custo (apenas de dias de espera!)
-    cout << endl << melhor_custo << endl;
+    cout << melhor_custo << endl;
+    cout << melhor_custo << endl;
 }
 
 void atualiza_solucao(const vector<int> &solucao, int custo){
@@ -200,7 +203,7 @@ void solve(){
     compute_part();
 
     /* Fila de prioridade que contera os nos ativos */
-    Schedule root();
+    Schedule root;
     priority_queue<Schedule, vector<Schedule>, compare> pq;
     pq.push(root);
 
@@ -220,8 +223,10 @@ void solve(){
                 offspring[j].bound();
                 if (offspring[j].boundVal < bestCost){
                     if (offspring[j].complete){
-                        bestCost = offspring[j].boundVal;
-                        best = offspring[j];
+                        //bestCost = offspring[j].boundVal;
+                        //best = offspring[j];
+                        offspring[j].updateBest();
+
                     }
                     else{
                         pq.push(offspring[j]);
@@ -235,21 +240,30 @@ void solve(){
 /* Funcao que faz a entrada dos dados e os coloca dentro de uma classe problema */
 void le_entrada(FILE * inp){
     int i, j;
+    if (not inp){
+        exit(1);
+    }
     //cin >> n >> m;
-    fscanf(inp, "%d\n%d", &n,&m);
+    if (fscanf(inp, "%d\n%d", &n,&m)==EOF){
+        exit(1);
+    }
     T.resize(m);
     for (i = 0; i < m; i++){
         T[i].resize(n);
         for (j = 0; j < n; j++) {
             //cin >> T[i][j];
-            fscanf(inp, "%d",&T[i][j]);
+            if (fscanf(inp, "%d",&T[i][j])==EOF){
+                exit(1);
+            }
         }
     }
 
     cost.resize(m);
     for (i = 0; i < m; i++) {
         //cin >> cost[i];
-        fscanf(inp, "%d",&cost[i]);
+        if (fscanf(inp, "%d",&cost[i])==EOF){
+            exit(1);
+        }
     }
 
 }
@@ -262,12 +276,15 @@ int main(int argc, char * argv[]){
     // solucao, utilize a funcao atualiza_solucao para atualizar as
     // variaveis globais.
 
-    if (not 1 < argc){
+    if (not (1 < argc)){
         exit(1);
     }
 
-    FILE * inp = fopen(argv[1], "r");
-
+    FILE * inp;
+    inp = fopen(argv[1], "r");
+    if (not inp){
+        return 1;
+    }
 
     /* Le os dados do problema */
     le_entrada(inp);
