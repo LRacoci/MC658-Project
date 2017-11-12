@@ -24,19 +24,16 @@ volatile int escrevendo = 0; // Indica se estah atualizando a melhor solucao
 vector<int> melhor_solucao;
 int melhor_custo;
 
-void imprime_saida()
-{
+void imprime_saida() {
     // Lembre-se: a primeira linha da saida deve conter n inteiros,
     // tais que o j-esimo inteiro indica o dia de gravacao da cena j!
     for (int j = 0; j < melhor_solucao.size(); j++)
         cout << melhor_solucao[j] << " ";
     // A segunda linha contem o custo (apenas de dias de espera!)
-    cout << endl
-         << melhor_custo << endl;
+    cout << endl << melhor_custo << endl;
 }
 
-void atualiza_solucao(const vector<int> &solucao, int custo)
-{
+void atualiza_solucao(const vector<int> &solucao, int custo){
     escrevendo = 1;
     melhor_solucao = solucao;
     melhor_custo = custo;
@@ -51,8 +48,7 @@ void atualiza_solucao(const vector<int> &solucao, int custo)
     }
 }
 
-void interrompe(int signum)
-{
+void interrompe(int signum){
     pare = 1;
     if (escrevendo == 0)
     {
@@ -66,8 +62,7 @@ void interrompe(int signum)
 int n, // number of scenes
     m; // number of actors
 
-MAT(int)
-T;                  // m x n
+MAT(int) T;         // m x n
 vector<int> cost;   // Vetor com os custos das cenas
 vector<int> part;   // Vetor com a participacao dos atores
 int bestCost = INF; // Melhor custo encontrado
@@ -79,8 +74,7 @@ void compute_part();
 void solve();
 
 /* Calcula os s_i's do enunciado */
-void compute_part()
-{
+void compute_part(){
     part.resize(m, 0);
     for (int i = 0; i < m; i++)
     {
@@ -221,8 +215,7 @@ struct compare {
 
 
 /* Funcao que executa o branch and bound */
-void solve()
-{
+void solve(){
     //s_i's do enunciado
     compute_part();
 
@@ -266,8 +259,7 @@ void solve()
 }
 
 /* Funcao que faz a entrada dos dados e os coloca dentro de uma classe problema */
-void le_entrada()
-{
+void le_entrada(){
     int i, j;
 
     cin >> n >> m;
@@ -286,8 +278,7 @@ void le_entrada()
 
 }
 
-int main()
-{
+int main(){
     // Registra a funcao que trata o sinal
     signal(SIGINT, interrompe);
 
