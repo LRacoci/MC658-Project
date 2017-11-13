@@ -24,6 +24,7 @@ volatile int escrevendo = 0; // Indica se estah atualizando a melhor solucao
 // Variaveis para guardar a melhor solucao encontrada
 vector<int> melhor_solucao;
 int melhor_custo;
+int nos_visitados = 0;
 
 void imprime_saida() {
     // Lembre-se: a primeira linha da saida deve conter n inteiros,
@@ -35,6 +36,7 @@ void imprime_saida() {
     // A segunda linha contem o custo (apenas de dias de espera!)
     cout << melhor_custo << endl;
     cout << melhor_custo << endl;
+    cout << nos_visitados << endl;
 }
 
 void atualiza_solucao(const vector<int> &solucao, int custo){
@@ -212,6 +214,7 @@ void solve(){
         /* Retira o melhor no da fila */
         Schedule k = pq.top();
         pq.pop();
+        nos_visitados ++;
 
         /* Checa se o no atual pode dar uma solucao melhor
 		 * do que a melhor encontrada ate o momento */
