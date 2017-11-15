@@ -139,7 +139,7 @@ class Schedule {
 
         days[chosen_day] = choice;
         for (int i = 0; i < m; i++) {
-            if (T[i][choice]){
+            if (T[i][choice]) {
                 if (chosen_day < first[i]) {
                     first[i] = chosen_day;
                 }
@@ -169,7 +169,7 @@ class Schedule {
 
         for (int i = 0; i < m; i++) {
             // if i in A(P) <==> di != none != ei
-            if (first[i] <= l and last[i] >= r){
+            if (first[i] <= l and last[i] >= r) {
                 val += cost[i] * (last[i] - first[i] + 1 - part[i]);
             }
         }
@@ -226,7 +226,7 @@ void solve() {
                         //bestCost = offspring[j].boundVal;
                         //best = offspring[j];
                         offspring[j].updateBest();
-
+                        cout << offspring[j].l << " " << offspring[j].r << endl;
                     } else {
                         pq.push(offspring[j]);
                     }
