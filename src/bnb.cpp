@@ -165,12 +165,15 @@ class Schedule {
 
     /* Calcula o limitante do no */
     void bound() {
-        int val = 0;
+        int val = 0, aux;
 
         for (int i = 0; i < m; i++) {
             // if i in A(P) <==> di != none != ei
-            if (first[i] <= l and last[i] >= r) {
-                val += cost[i] * (last[i] - first[i] + 1 - part[i]);
+            if (first[i] < n and last[i] >= 0) {
+                aux = cost[i] * (last[i] - first[i] + 1 - part[i]);
+            	if (aux > 0) {
+            		val += aux;
+            	}
             }
         }
 
@@ -226,7 +229,6 @@ void solve() {
                         //bestCost = offspring[j].boundVal;
                         //best = offspring[j];
                         offspring[j].updateBest();
-                        cout << offspring[j].l << " " << offspring[j].r << endl;
                     } else {
                         pq.push(offspring[j]);
                     }
