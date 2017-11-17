@@ -24,6 +24,7 @@ volatile int escrevendo = 0; // Indica se estah atualizando a melhor solucao
 // Variaveis para guardar a melhor solucao encontrada
 vector<int> melhor_solucao;
 int melhor_custo = INF;
+int melhor_limitante = 0;
 int nos_visitados = 0;
 
 void imprime_saida() {
@@ -35,7 +36,7 @@ void imprime_saida() {
         cout << endl;
     // A segunda linha contem o custo (apenas de dias de espera!)
     cout << melhor_custo << endl;
-    cout << melhor_custo << endl;
+    cout << melhor_limitante << endl;
     cout << nos_visitados << endl;
 }
 
@@ -61,6 +62,9 @@ void interrompe(int signum) {
         exit(0);
     }
 }
+
+
+
 /*Variáveis que definem o problema que esta sendo resolvido e guarda as suas informacoes */
 
 int n, // number of scenes
@@ -198,29 +202,31 @@ struct compare {
     }
 };
 
+/* Fila de prioridade que contera os nos ativos */
+priority_queue<Schedule, vector<Schedule>, compare> ativos;
 
 /* Funcao que executa o branch and bound */
 void solve() {
     //s_i's do enunciado
     compute_part();
 
-    /* Fila de prioridade que contera os nos ativos */
     Schedule root;
-    priority_queue<Schedule, vector<Schedule>, compare> pq;
-    pq.push(root);
+    
+    ativos.push(root);
 
     /* Explora os nos ativos */
-    while (not pq.empty()) {
+    while (not ativos.empty()) {
         /* Retira o melhor no da fila */
-        Schedule k = pq.top();
-        pq.pop();
+        Schedule topAtivo = ativos.top();
+        ativos.pop();
 
         /* Checa se o no atual pode dar uma solucao melhor
-		 * do que a melhor encontrada ate o momento */
-        if (k.boundVal < melhor_custo) {
+         * do que a melhor encontrada ate o momento */
+        if (topAtivo.boundVal < melhor_custo) {
+            melhor_limitante = topAtivo.boundVal;
         	nos_visitados++;
             /* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
-            vector<Schedule> &offspring = k.branch();
+            vector<Schedule> &offspring = topAtivo.branch();
             /* Trata cada filho separadamente */
             for (int j = 0; j < offspring.size(); j++) {
                 offspring[j].bound();
@@ -230,12 +236,13 @@ void solve() {
                         //best = offspring[j];
                         offspring[j].updateBest();
                     } else {
-                        pq.push(offspring[j]);
+                        ativos.push(offspring[j]);
                     }
                 }
             }
         }
     }
+    melhor_limitante = melhor_custo;
 }
 
 /* Funcao que faz a entrada dos dados e os coloca dentro de uma classe problema */
@@ -281,14 +288,14 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    FILE * inp;
-    inp = fopen(argv[1], "r");
-    if (not inp) {
+    FILE * dataFile;
+    dataFile = fopen(argv[1], "r");
+    if (not dataFile) {
         return 1;
     }
 
     /* Le os dados do problema */
-    le_entrada(inp);
+    le_entrada(dataFile);
 
     /* Resolve o problema */
     solve();
