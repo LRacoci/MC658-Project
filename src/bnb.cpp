@@ -31,7 +31,7 @@ void imprime_saida() {
     // Lembre-se: a primeira linha da saida deve conter n inteiros,
     // tais que o j-esimo inteiro indica o dia de gravacao da cena j!
     for (int j = 0; j < melhor_solucao.size(); j++)
-        cout << melhor_solucao[j] << " ";
+        cout << melhor_solucao[j] + 1 << " ";
     
         cout << endl;
     // A segunda linha contem o custo (apenas de dias de espera!)
@@ -97,8 +97,7 @@ class Schedule {
     int l, r;                   // Indicam os locais de insercao de novas escolhas
     int boundVal;               // Limitante inferior da solucao
     bool complete;              // Indica se a solucao e completa
-    vector<int> days;           // Permutacao das cenas
-    vector<int> chosen;         // Indica quais cenas ja foram escolhidas
+    vector<int> scenes;           // Permutacao das cenas
     vector<int> first;          // Indica o primeiro dia de cada ator
     vector<int> last;           // Indica o ultimo dia de cada ator
     vector<Schedule> offspring; // Cria os filhos do no atual
@@ -110,22 +109,19 @@ class Schedule {
         r = n - 1;
         boundVal = 0;
         complete = false;
-        days.resize(n, -1);
-        chosen.resize(n, false);
+        scenes.resize(n, -1);
         first.resize(m, n);
         last.resize(m, -1);
     }
 
     /* Cria objetos subsequentes de Schedule a partir de outro ja criado */
     Schedule(Schedule *dad, int choice) : 
-        days(dad->days),
-        chosen(dad->chosen),
+        scenes(dad->scenes),
         first(dad->first),
         last(dad->last) {
         /* Incrementa o nivel do no atual em relacao ao seu superior */
         depth = dad->depth + 1;
         complete = depth == n;
-        chosen[choice] = true;
 
         /* Checa o lado do vetor que a nova escolha sera inserida,
 		* atualiza os vetores que indicam o primeiro e ultimo dia
@@ -141,7 +137,7 @@ class Schedule {
             chosen_day = r + 1;
         }
 
-        days[chosen_day] = choice;
+        scenes[choice] = chosen_day;
         for (int i = 0; i < m; i++) {
             if (T[i][choice]) {
                 if (chosen_day < first[i]) {
@@ -158,7 +154,7 @@ class Schedule {
     vector<Schedule> &branch() {
 
         for (int j = 0; j < n; j++) {
-            if (not chosen[j]){
+            if (scenes[j] == -1){
                 Schedule child(this, j);
                 offspring.push_back(child);
             }
@@ -185,12 +181,6 @@ class Schedule {
     }
 
     void updateBest() {
-        vector<int> scenes;
-        int tam = days.size();
-        scenes.resize(tam);
-        for (int j = 0; j < tam; j++) {
-            scenes[days[j]] = j + 1;
-        }
         atualiza_solucao(scenes, boundVal);
     }
 };
