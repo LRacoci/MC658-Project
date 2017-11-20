@@ -15,6 +15,8 @@
 
 using namespace std;
 
+//#define DEBUG
+
 // Flags para controlar a interrupcao por tempo
 volatile int pare = 0;       // Indica se foi recebido o sinal de interrupcao
 volatile int escrevendo = 0; // Indica se estah atualizando a melhor solucao
@@ -100,6 +102,7 @@ void initializeGlobals() {
 	}
 }
 // Debug
+#ifdef DEBUG
 enum Partition {A, B_E, B_D, Unknown};
 ostream& operator<<(ostream& os, const Partition& s) {
 	switch(s){
@@ -119,7 +122,9 @@ ostream& operator<<(ostream& os, const Partition& s) {
 	return os;
 
 }
-// Debug
+#endif // DEBUG
+
+#ifdef DEBUG
 template <typename T>
 ostream& operator<<(ostream& os, const vector <T>& vec) {  
 	for(unsigned i = 0; i < vec.size(); i++){
@@ -133,7 +138,14 @@ template <typename T, typename S>
 ostream& operator<<(ostream& os, const pair <T,S>& p) {  
 	return os << '(' << p.first << ' ' << p.second << ')';  
 } 
+#endif // DEBUG 
 
+
+struct descending
+{
+    template<class T>
+    bool operator()(T const &a, T const &b) const { return a > b; }
+};
 
 /* Classe que representa uma atribuicao de cenas aos dias */
 class Schedule {
@@ -156,6 +168,9 @@ class Schedule {
 	vector<int> last;
 	// Indica numero de dias conhecidos por ator
 	vector<int> nKnownDays;
+	
+	#ifdef DEBUG
+
 	// Debug: indica em que conjunto está o ator A(P), B_E(P) ou B_D(P)
 	vector<Partition> where;
 	// Debug: Initial waiting
@@ -163,6 +178,7 @@ class Schedule {
 	// Debug: Final waiting
 	vector<int> finalWait;
 
+	#endif // DEBUG
 
 	vector<Schedule> offspring; // Cria os filhos do no atual
 
@@ -178,21 +194,30 @@ class Schedule {
 		first.resize(nActors, nScenes);
 		last.resize(nActors, -1);
 		nKnownDays.resize(nActors, 0);
+		#ifdef DEBUG
+	
 		where.resize(nActors, Unknown);
 		initialWait.resize(nActors, 0);
 		finalWait.resize(nActors, 0);
+
+		#endif // DEBUG
 	}
 
 	/* Cria objetos subsequentes de Schedule a partir de outro ja criado */
 	Schedule(Schedule *dad, int chosen_scene) : 
+		#ifdef DEBUG
+
+		where(dad->where),
+		initialWait(nActors, 0),
+		finalWait(nActors, 0),
+
+		#endif // DEBUG
+
 		day(dad->day),
 		scene(dad->scene),
 		first(dad->first),
 		last(dad->last),
-		nKnownDays(dad->nKnownDays),
-		where(dad->where),
-		initialWait(nActors, 0),
-		finalWait(nActors, 0)
+		nKnownDays(dad->nKnownDays)
 	{
 		/* Incrementa o nivel do no atual em relacao ao seu superior */
 		depth = dad->depth + 1;
@@ -245,6 +270,122 @@ class Schedule {
 
 	friend ostream& operator<<(ostream& os, const Schedule& s);
 
+	vector< int > packCost(vector< pair<int, int > > & actorSet){
+		// [(sceneCost, scene)]
+		vector< pair<int, int > > scenesOrder;
+		// packSet[j] indica cenas com atores soh em uma delas
+		// packSets = {packSet : para todo a em atores : 1 = sum {j em packSet} T[a,j]}
+		// |packSet| <= (firstFinal - lastInitial + 1 - max{part[i] - nKnownDays[i]| i in atores} + 1)
+		vector<bool> packSet(nScenes, false);
+		// Cenas ainda não decididas.
+		for (int j = 0; j <= nScenes; j++){
+			if (day[j] == -1){
+				scenesOrder.push_back(make_pair(scenePart[j],j));
+				packSet[j] = true;
+			}
+		}
+		// sort scenesOrder descending
+		stable_sort(scenesOrder.begin(), scenesOrder.end());
+
+		#ifdef DEBUG
+
+		clog << endl << "packCost function \t";
+		clog << "sceneOrder: " << scenesOrder << endl << "packCost function \t";
+		
+
+		clog << "Cenas em ordem:" << endl << "packCost function \t";
+		// Imprime primeira linha
+		clog << "actorSet";
+		for(int j = 0; j < scenesOrder.size(); j++){
+			int sc = scenesOrder[j].second;
+			clog << " \t Cena " << sc;
+		}
+		clog << endl << "packCost function \t";
+		// Imprime outras linhas
+		for (int i = 0; i < actorSet.size(); i++){
+			int a = actorSet[i].second;
+			clog << a;
+			for(int j = 0; j < scenesOrder.size(); j++){
+				int sc = scenesOrder[j].second;
+				clog << '\t';
+				if (T[a][sc]){
+					clog << 1;
+				}
+			}
+			clog << endl << "packCost function \t";
+		}
+
+		#endif // DEBUG
+
+
+		for (int i = 0; i < actorSet.size(); i++){
+			int a = actorSet[i].second;
+			int scenesVisited = 0;
+			for(int j = 0; j < scenesOrder.size(); j++){
+				int sc = scenesOrder[j].second;
+				if(packSet[sc]){
+					scenesVisited += T[a][sc];
+					if (scenesVisited > 1){
+						packSet[sc] = false;
+						#ifdef DEBUG
+						clog << "\t("<< a << " tira " << sc << ")";
+						#endif // DEBUG
+					}
+				}
+			}
+			#ifdef DEBUG
+			clog << endl << "packCost function \t";
+			#endif // DEBUG
+		}
+		#ifdef DEBUG
+		clog << "Empacotamento:" << endl << "packCost function \t";
+		// Imprime primeira linha
+		clog << "actorSet";
+		for(int j = 0; j < scenesOrder.size(); j++){
+			int sc = scenesOrder[j].second;
+			if( packSet[sc]){
+				clog << "\tCena " << sc;
+			}
+		} 
+		clog << endl << "packCost function \t";
+		// Imprime outras linhas
+		for (int i = 0; i < actorSet.size(); i++){
+			int a = actorSet[i].second;
+			clog << a;
+			for(int j = 0; j < scenesOrder.size(); j++){
+				int sc = scenesOrder[j].second;
+				if( packSet[sc]){
+					clog << '\t';
+					if (T[a][sc]){
+						clog << 1;
+					}
+				}
+			}
+			clog << endl << "packCost function \t";
+		}
+		#endif // DEBUG
+		
+		// [sceneCost]
+		vector< int > packCost;
+		for(int j = 0; j < scenesOrder.size(); j++){
+			int sc = scenesOrder[j].second;
+			if (packSet[sc]){
+				int sceneCost = 0;
+				for(int i = 0; i < actorSet.size(); i++){
+					int a = actorSet[i].second;
+					sceneCost += cost[a] * T[a][sc];
+				}
+				packCost.push_back(sceneCost);
+			}
+		}
+		#ifdef DEBUG
+		clog << "packCost before sort: \t " << packCost << endl << "packCost function \t";
+		#endif // DEBUG
+
+		stable_sort(packCost.begin(), packCost.end(), descending());
+
+		return packCost;
+	}
 	/* Calcula o limitante do no */
 	void bound() {
 		int k1 = 0;
@@ -257,7 +398,9 @@ class Schedule {
 			*/
 			// i in A(P) <==> first[i] < lastInitial and last[i] >= firstFinal
 			if ((first[i] < lastInitial and last[i] >= firstFinal) or nKnownDays[i] == part[i]){
+				#ifdef DEBUG
 				where[i] = A;
+				#endif // DEBUG
 				int aux = cost[i] * (last[i] - first[i] + 1 - part[i]);
 				if (aux > 0) {
 					k1 += aux;
@@ -271,12 +414,16 @@ class Schedule {
 			// i in B_E(P) <==> first[i] < lastInitial and not in A(P)
 			if (first[i] < lastInitial and last[i] < firstFinal and nKnownDays[i] < part[i]){
 				int sum = 0;
+				#ifdef DEBUG
 				where[i] = B_E;
+				#endif // DEBUG
 				// Soma 0's de first[i] até lastInitial
 				for (int l = first[i]; l < lastInitial; l++){
 					sum += 1 - T[i][scene[l]];
 				}
+				#ifdef DEBUG
 				initialWait[i] = sum;
+				#endif // DEBUG
 				k2 += cost[i] * sum;
 			}
 		}
@@ -285,130 +432,94 @@ class Schedule {
 			// i in B_D(P) <==> last[i] >= firstFinal and not in A(P)
 			if (last[i] >= firstFinal and first[i] >= lastInitial and nKnownDays[i] < part[i]){
 				int sum = 0;
+				#ifdef DEBUG
 				where[i] = B_D;
+				#endif // DEBUG
 				for (int l = last[i]; l > firstFinal; l--){
 					sum += 1 - T[i][scene[l]];
 				}
+				#ifdef DEBUG
 				finalWait[i] = sum;
+				#endif // DEBUG
 				k2 += cost[i] * sum;
 			}
 
 		}
 
-		// Encontra subconjunto de cenas ainda não decididas com 1 ator em cada
+		// Calcula k3
 
-		int k3 = 0;
-		// empac[j] indica cenas com atores soh em uma delas
-		// empacs = {empac : para todo a em atores : 1 = sum {j em empac} T[a,j]}
-		// |empac| <= (firstFinal - lastInitial + 1 - max{part[i] - nKnownDays[i]| i in atores} + 1)
-		
+		// Encontra subconjunto de cenas ainda não decididas com 1 ator de B_E em cada
+
+
 		// [(numero de cenas desconhecidas de que o ator nao participa, ator)]
-		vector< pair<int, int > > actorsOrder;
+		vector< pair<int, int > > vecB_E;
 		for (int i = 0; i < nActors; i++){
 			// if i in B_E
 			if (first[i] < lastInitial and last[i] < firstFinal and nKnownDays[i] < part[i]){
-				actorsOrder.push_back(make_pair(firstFinal+1-lastInitial-(part[i]-nKnownDays[i]),i));
+				vecB_E.push_back(make_pair(firstFinal+1-lastInitial-(part[i]-nKnownDays[i]),i));
 			}
 		}
-		// sort actorsOrder decrescente
-		stable_sort(actorsOrder.begin(), actorsOrder.end());
+		// sort vecB_E descending
+		stable_sort(vecB_E.begin(), vecB_E.end(), descending());
 
-		clog << "actorsOrder: " << actorsOrder << endl;
+		#ifdef DEBUG
+		clog << "vecB_E: " << vecB_E << endl;
+		#endif // DEBUG
 
-		// [(sceneCost, scene)]
-		vector< pair<int, int > > scenesOrder;
-		// Cenas ainda não decididas.
-		for (int j = 0; j <= nScenes; j++){
-			if (day[j] == -1){
-				scenesOrder.push_back(make_pair(scenePart[j],j));
-			}
-		}
-		stable_sort(scenesOrder.begin(), scenesOrder.end());
-		clog << "sceneOrder: " << scenesOrder << endl;
-		// sort scenesOrder decrescente
+		vector<int> packCostB_E = packCost(vecB_E);
 
-		/*
-		clog << "Cenas em ordem:" << endl;
-		// Imprime primeira linha
-		clog << "B_E";
-		for(int j = 0; j < scenesOrder.size(); j++){
-			int sc = scenesOrder[j].second;
-			clog << " \t Cena " << sc;
-		}
-		clog << endl;
-		// Imprime outras linhas
-		for (int i = 0; i < actorsOrder.size(); i++){
-			int a = actorsOrder[i].second;
-			clog << a;
-			for(int j = 0; j < scenesOrder.size(); j++){
-				int sc = scenesOrder[j].second;
-				clog << '\t';
-				if (T[a][sc]){
-					clog << 1;
-				}
-			}
-			clog << endl;
-		}
-		*/
+		#ifdef DEBUG
+		clog << "packCostB_E: \t " << packCostB_E << endl;
+		#endif // DEBUG
 
-
-		vector<bool> empac(nScenes, true);
-		for (int i = 0; i < actorsOrder.size(); i++){
-			int a = actorsOrder[i].second;
-			int scenesVisited = 0;
-			for(int j = 0; j < scenesOrder.size(); j++){
-				int sc = scenesOrder[j].second;
-				if(empac[sc]){
-					scenesVisited += T[a][sc];
-					if (scenesVisited > 1){
-						empac[sc] = false;
-					}
-				}
-			}
-			clog << endl;
-		}
-		
-		clog << "Empacotamento:" << endl;
-		// Imprime primeira linha
-		clog << "B_E";
-		for(int j = 0; j < scenesOrder.size(); j++){
-			int sc = scenesOrder[j].second;
-			if( empac[sc]){
-				clog << "\tCena " << sc;
-			}
-		} 
-		clog << endl;
-		// Imprime outras linhas
-		for (int i = 0; i < actorsOrder.size(); i++){
-			int a = actorsOrder[i].second;
-			clog << a;
-			for(int j = 0; j < scenesOrder.size(); j++){
-				int sc = scenesOrder[j].second;
-				if( empac[sc]){
-					clog << '\t';
-					if (T[a][sc]){
-						clog << 1;
-					}
-				}
-			}
-			clog << endl;
-		}
-		
 		//Calcula k3
-
-
+		int k3 = 0;
+		for(int j = 0; j < packCostB_E.size(); j++){
+			k3 += j * packCostB_E[j];
+		}
+		#ifdef DEBUG
 		if (k3){
 			clog << "k3 \t" << k3 << endl;
 		}
+		#endif // DEBUG
 
-		int k4 = 0; 
 		//Calcula k4
 
+		// [(numero de cenas desconhecidas de que o ator nao participa, ator)]
+		vector< pair<int, int > > vecB_D;
+		for (int i = 0; i < nActors; i++){
+			// if i in B_D
+			if (last[i] >= firstFinal and first[i] >= lastInitial and nKnownDays[i] < part[i]){
+				vecB_D.push_back(make_pair(firstFinal+1-lastInitial-(part[i]-nKnownDays[i]),i));
+			}
+		}
+		// sort vecB_D descending
+		stable_sort(vecB_D.begin(), vecB_D.end(), descending());
+		
+		#ifdef DEBUG
+		clog << "vecB_D: " << vecB_D << endl;
+		#endif // DEBUG
+
+		vector<int> packCostB_D = packCost(vecB_D);
+		#ifdef DEBUG
+		clog << "packCostB_D: \t " << packCostB_D << endl;
+		#endif // DEBUG
+
+
+		int k4 = 0;
+
+		for(int j = 0; j < packCostB_D.size(); j++){
+			k4 += j * packCostB_D[j];
+		}
+		#ifdef DEBUG
 		if (k4){
 			clog << "k4 \t" << k4 << endl;
 		}
-		
+		#endif // DEBUG
 
+		#ifdef DEBUG
+		clog << "boundVal \t " << '=' << k1 << '+' << k2 << '+' << k3 << '+' << k4 << endl;
+		#endif // DEBUG
 		boundVal = k1 + k2 + k3 + k4;
 	}
 
@@ -416,8 +527,8 @@ class Schedule {
 		atualiza_solucao(day, boundVal);
 	}
 };
-
 // Debuging
+#ifdef DEBUG 
 ostream& operator<<(ostream& os, const Schedule& s) {
 	/*
 		Actors 	 first 	Cenas 	last where
@@ -461,6 +572,7 @@ ostream& operator<<(ostream& os, const Schedule& s) {
 
 	return os;
 }
+#endif // DEBUG 
 
 /* Funcao de comparacao para se obter um heap de minimo */
 struct compare {
@@ -491,8 +603,8 @@ void solve() {
 		 * do que a melhor encontrada ate o momento */
 		if (topAtivo.boundVal < melhor_custo) {
 			melhor_limitante = topAtivo.boundVal;
-			nos_visitados++;
 			/* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
+			nos_visitados++;
 			vector<Schedule> &offspring = topAtivo.branch();
 			/* Trata cada filho separadamente */
 			for (int j = 0; j < offspring.size(); j++) {
