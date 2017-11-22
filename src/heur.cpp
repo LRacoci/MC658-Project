@@ -78,8 +78,8 @@ void compute_part() {
 }
 
 /* Constantes que podem variar no problema */
-#define TAM_POPULACAO 20
-#define TAM_MUTACAO 5
+#define TAM_POPULACAO 10
+#define TAM_MUTACAO 20
 #define TAM_CRUZAMENTO 10
 
 /* Classe que representa um individuo, ou solucao */
@@ -93,6 +93,7 @@ public:
         for (int i = 0; i < n; i++) {
             scenes[i] = i;
         }
+        aptidao = INF;
     }
 
     /* Cria uma permutacao aleatoria */
@@ -120,7 +121,8 @@ public:
         }
     }
 
-    void swap(int index1, int index2) {
+    /* Troca dois elementos da permutacao */
+    void troca(int index1, int index2) {
         int aux = scenes[index1];
         scenes[index1] = scenes[index2];
         scenes[index2] = aux;
@@ -128,50 +130,203 @@ public:
 
 };
 
+struct compare {
+    bool operator()(const Schedule &l, const Schedule &r) {
+        return l.aptidao < r.aptidao;
+    }
+};
+
 /* Classe que representa uma populacao */
 class Populacao {
 public:
     vector<Schedule> P;
+    int tamanho_real;
 
     Populacao() {
-        P.resize(TAM_POPULACAO);
+        P.resize(TAM_POPULACAO + TAM_CRUZAMENTO + TAM_MUTACAO);
+        tamanho_real = 0;
         inicializaPopulacao();
     }
 
     /* Inicializa a populacao com permutacoes aleatorias */
     void inicializaPopulacao() {
-
         for (int i = 0; i < TAM_POPULACAO; i++) {
-            P[i].criaSchedule();
+            tamanho_real++;
+            do {
+                P[i].criaSchedule();
+            } while (existeDuplicata(i));
         }
+        for (int i = 0; i < TAM_POPULACAO; i++) {
+            P[i].calculaAptidao();
+        }
+    }
 
-        atualizaMelhor();
-
+    /* Checa se a permutacao i esta repetida */
+    bool existeDuplicata(int i) {
+        int j, k;
+        bool igual;
+        for (j = 0; j < tamanho_real; j++) {
+            if (i != j) {
+                igual = true;
+                for (k = 0; k < n; k++) {
+                    if (P[i].scenes[k] != P[j].scenes[k]) {
+                        igual = false;
+                        break;
+                    }
+                }
+                if (igual) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /* Atualiza o melhor individuo */
     void atualizaMelhor() {
-        for (int i = 0; i < TAM_POPULACAO; i++) {
+        for (int i = TAM_POPULACAO; i < TAM_POPULACAO + TAM_CRUZAMENTO + TAM_MUTACAO; i++) {
             P[i].calculaAptidao();
-            if (P[i].aptidao < melhor_custo) {
-                atualiza_solucao(P[i].scenes, P[i].aptidao);
-            }
+        }
+        sort(P.begin(), P.end(), compare());
+        if (P[0].aptidao < melhor_custo) {
+            atualiza_solucao(P[0].scenes, P[0].aptidao);
         }
     }
 
 };
 
+/* Variaveis que selecionam o metodo de cruzamento ou
+ * mutacao utilizando um esquema de round-robin */
+int metodo_cruzamento = 0;
+int metodo_mutacao = 0;
+
 /* Faz cruzamentos na populacao */
 void cruzamentos(Populacao & Pop) {
+    int pai1, pai2, index1, index2, aux, j, k;
+    vector<bool> escolhidos;
+    escolhidos.resize(n);
 
+    for (int i = TAM_POPULACAO + TAM_MUTACAO; i < TAM_POPULACAO + TAM_MUTACAO + TAM_CRUZAMENTO; i++) {
+        /* Escolhe dois pais para o cruzamento */
+        do {
+            pai1 = rand() % TAM_POPULACAO;
+            pai2 = rand() % TAM_POPULACAO;
+        } while (pai1 == pai2);
+        fill(escolhidos.begin(), escolhidos.end(), false);
+
+        /* Escolhe entre os cruzamentos: pega a parte inicial de um dos pais
+         * e depois copia os elementos faltantes do outro pai na ordem em que
+         * aparecem, ou faz o mesmo processo escolhendo uma regiao interior
+         * do primeiro pai e completa com a ordem dos elementos do outro pai */
+        if (metodo_cruzamento % 2 == 0) {
+            index1 = rand() % n;
+            j = 0;
+            while (j <= index1) {
+                aux = Pop.P[pai1].scenes[j];
+                escolhidos[aux] = true;
+                Pop.P[i].scenes[j] = aux;
+                j++;
+            }
+            for (k = 0; k < n; k++) {
+                aux = Pop.P[pai2].scenes[k];
+                if (!escolhidos[aux]) {
+                    escolhidos[aux] = true;
+                    Pop.P[i].scenes[j] = aux;
+                    j++;
+                }
+            }
+        } else {
+            do {
+                index1 = rand() % n;
+                index2 = rand() % n;
+            } while (index1 == index2);
+            if (index1 > index2) {
+                aux = index1;
+                index1 = index2;
+                index2 = aux;
+            }
+            j = index1;
+            while (j <= index2) {
+                aux = Pop.P[pai1].scenes[j];
+                escolhidos[aux] = true;
+                Pop.P[i].scenes[j] = aux;
+                j++;
+            }
+            j = 0;
+            k = 0;
+            while (k < index1) {
+                aux = Pop.P[pai2].scenes[j];
+                if (!escolhidos[aux]) {
+                    escolhidos[aux] = true;
+                    Pop.P[i].scenes[k] = aux;
+                    k++;
+                }
+                j++;
+            }
+            k = index2 + 1;
+            while (k < n) {
+                aux = Pop.P[pai2].scenes[j];
+                if (!escolhidos[aux]) {
+                    escolhidos[aux] = true;
+                    Pop.P[i].scenes[k] = aux;
+                    k++;
+                }
+                j++;
+            }
+        }
+        metodo_cruzamento = (metodo_cruzamento + 1) % 2;
+    }
 }
 
-/* Faz mutacao na populacao */
+/* Faz mutacao na populacao atraves de tres metodos diferentes */
 void mutacoes(Populacao & Pop) {
-    for (int i = 0; i < TAM_POPULACAO; i++) {
-        int index1 = rand() % n;
-        int index2 = rand() % n;
-        Pop.P[i].swap(index1, index2);
+    int index1, index2, individuo, aux;
+
+    for (int i = TAM_POPULACAO; i < TAM_POPULACAO + TAM_MUTACAO; i++) {
+        /* Escolhe dois indices distintos e um individuo da populacao */
+        do {
+            index1 = rand() % n;
+            index2 = rand() % n;
+        } while (index1 == index2);
+        individuo = rand() % TAM_POPULACAO;
+        Pop.P[i] = Pop.P[individuo];
+
+        /* Escolhe entre as mutacoes: troca dois elementos da permutacao,
+         * traz um segundo elemento para ao lado do primeiro no vetor, ou
+         * seleciona um trecho e inverte os valores da permutacao */
+        if (metodo_mutacao % 3 == 0) {
+            Pop.P[i].troca(index1, index2);
+        } else if (metodo_mutacao % 3 == 1) {
+            if (index1 > index2) {
+                aux = index1;
+                index1 = index2;
+                index2 = aux;
+            }
+            aux = Pop.P[i].scenes[index2];
+            while (index2 > index1 + 1) {
+                Pop.P[i].scenes[index2] = Pop.P[i].scenes[index2 - 1];
+                index2--;
+            }
+            Pop.P[i].scenes[index2] = aux;
+        } else {
+            if (index1 > index2) {
+                aux = index1;
+                index1 = index2;
+                index2 = aux;
+            }
+            /* Exclui as bordas para fazer o inverso, pois
+             * inverter toda a permutacao mantem o custo */
+            if (index1 == 0 and index2 == n - 1) {
+                index1++;
+                index2--;
+            }
+            while (index1 < index2) {
+                Pop.P[i].troca(index1, index2);
+                index1++;
+                index2--;
+            }
+        }
+        metodo_mutacao = (metodo_mutacao + 1) % 3;
     }
 }
 
@@ -183,7 +338,7 @@ void solve() {
     
     /* Cria a populacao inicial */
     Populacao Pop;
-    
+
     /* Fica recalculando iterativamente o algoritmo ate o tempo acabar */
     while (1) {
         cruzamentos(Pop);
