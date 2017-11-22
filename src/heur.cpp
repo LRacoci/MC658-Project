@@ -106,7 +106,7 @@ public:
         aptidao = 0;
         for (int i = 0; i < m; i++) {
             int aux = 0, part_aux = part[i];
-            while (T[i][scenes[aux]] != 1) {
+            while (aux < n and T[i][scenes[aux]] != 1) {
                 aux++;
             }
             for (int j = aux; part_aux > 0; j++){

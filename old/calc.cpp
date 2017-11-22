@@ -58,7 +58,7 @@ int main() {
 
 	for (i = 0; i < m; i++) {
 		int aux = 0;
-		while (P[i][aux] != 1) {
+		while (aux < n and P[i][aux] != 1) {
 			aux++;
 		}
 		for (j = aux; j < n; j++){
