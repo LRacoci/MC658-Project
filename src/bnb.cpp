@@ -261,7 +261,9 @@ class Schedule {
 		for (int j = 0; j < nScenes; j++) {
 			if (day[j] == -1){
 				Schedule child(this, j);
-				offspring.push_back(child);
+				if(depth != 2 or child.scene[0] < child.scene[nScenes-1]){
+					offspring.push_back(child);
+				}
 			}
 		}
 
