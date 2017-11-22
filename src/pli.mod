@@ -45,42 +45,24 @@ s.t. define_gravacao{a in ATORES, d in DIAS}:
 
 s.t. restringe_opcoes{a in ATORES, d in DIAS}:
 	sum{o in OPCOES} Schedule[o,a,d] == 1;
-
+/*INICIO*/
 s.t. decrescente{a in ATORES, d in {1..nD-1}}:
 	Schedule[1,a,d] >= Schedule[1,a,d+1];
-
+/*FINAL*/
 s.t.  crescente {a in ATORES, d in {1..nD-1}}:
 	Schedule[4,a,d] <= Schedule[4,a,d+1];
-
-
-
-
-/* Primeiro dia de gravação de cada ator a in ATORES*/
-var primeiro{a in ATORES},integer, >= 1, <= nD;
-
-/* É o número de dias que precede o primeiro dia de gravação + 1*/
-s.t. define_primeiro{a in ATORES}:
-	sum{d in DIAS} Schedule[1,a,d] + 1 == primeiro[a];
-
-
-/* Ultimo dia de gravação de cada ator a in ATORES*/
-var ultimo{a in ATORES},integer, >= 1, <= nD;
-/* É o número total de dias menos o número de dias após o ultimo dia */
-s.t. define_ultimo{a in ATORES}:
-	sum{d in DIAS} Schedule[4,a,d] == nD - ultimo[a];
-
 
 var espera{a in ATORES},integer, >= 0, <= nD;
 s.t. dfine_espera{a in ATORES}:
 	espera[a] == sum{d in DIAS} Schedule[3,a,d];
-
+/*
 var custo{a in ATORES},integer, >= 0;
 s.t. define_custo{a in ATORES}:
 	custo[a] == espera[a] * salario[a];
-
+*/
 var custoTotal, integer, >= 0;
 s.t. define_custoTotal:
-	custoTotal == sum{a in ATORES} custo[a];
+	custoTotal == sum{a in ATORES} espera[a] * salario[a]; /*custo[a];*/
 
 /* ===> funcao objetivo */
 minimize custo_minimo:
