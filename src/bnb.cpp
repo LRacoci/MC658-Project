@@ -446,7 +446,8 @@ class Schedule {
 	// Nivel na arvore de busca
 	int depth;
 	// Indicam os locais de insercao de novas escolhas
-	int lastInitial, firstFinal;
+	int firstUnknown, lastUnknown;
+
 	// Limitante inferior da solucao
 	int boundVal;               
 	// Indica se a solucao e completa
@@ -455,12 +456,8 @@ class Schedule {
 	vector<int> day;
 	// scene[l] indica a cena a ser gravada no dia l
 	vector<int> scene;
-	// Indica o primeiro dia de cada ator
-	vector<int> first;
-	// Indica o ultimo dia de cada ator
-	vector<int> last;
-	// Indica numero de dias conhecidos por ator
-	vector<int> nKnownDays;
+
+	int newScene;
 	
 	#ifdef DEBUG
 
@@ -478,15 +475,14 @@ class Schedule {
 	/* Cria o objeto inicial (raiz) de Schedule */
 	Schedule() {
 		depth = 0;
-		lastInitial = 0;
-		firstFinal = nScenes - 1;
+		firstUnknown = 0;
+		lastUnknown = nScenes - 1;
 		boundVal = 0;
 		complete = false;
 		day.resize(nScenes, -1);
 		scene.resize(nScenes, -1);
-		first.resize(nActors, nScenes);
-		last.resize(nActors, -1);
-		nKnownDays.resize(nActors, 0);
+
+		newScene = -1;
 		#ifdef DEBUG
 	
 		where.resize(nActors, Unknown);
@@ -507,43 +503,30 @@ class Schedule {
 		#endif // DEBUG
 
 		day(dad->day),
-		scene(dad->scene),
-		first(dad->first),
-		last(dad->last),
-		nKnownDays(dad->nKnownDays)
+		scene(dad->scene)
 	{
 		/* Incrementa o nivel do no atual em relacao ao seu superior */
 		depth = dad->depth + 1;
-		complete = depth == nScenes;
+		newScene = chosen_scene;
 
+		complete = depth == nScenes;
+		
 		/* Checa o lado do vetor que a nova escolha sera inserida,
 		* atualiza os vetores que indicam o primeiro e ultimo dia
 		* de cada ator e atualiza os indices direito e esquerdo */
 		int chosen_day;
 		if (depth % 2 == 1) {
-			firstFinal = dad->firstFinal;
-			lastInitial = dad->lastInitial + 1;
-			chosen_day = lastInitial - 1;
+			lastUnknown = dad->lastUnknown;
+			firstUnknown = dad->firstUnknown + 1;
+			chosen_day = firstUnknown - 1;
 		} else {
-			lastInitial = dad->lastInitial;
-			firstFinal = dad->firstFinal - 1;
-			chosen_day = firstFinal + 1;
+			firstUnknown = dad->firstUnknown;
+			lastUnknown = dad->lastUnknown - 1;
+			chosen_day = lastUnknown + 1;
 		}
 
 		day[chosen_scene] = chosen_day;
 		scene[chosen_day] = chosen_scene;
-
-		for (int i = 0; i < nActors; i++) {
-			if (T[i][chosen_scene]) {
-				nKnownDays[i]++;
-				if (chosen_day < first[i]) {
-					first[i] = chosen_day;
-				}
-				if (chosen_day > last[i]) {
-					last[i] = chosen_day;
-				}
-			}
-		}
 	}
 
 	/* Retorna os filhos do no corrente */
@@ -568,7 +551,7 @@ class Schedule {
 		vector< pair<int, int > > scenesOrder;
 		// packSet[j] indica cenas com atores soh em uma delas
 		// packSets = {packSet : para todo a em atores : 1 = sum {j em packSet} T[a,j]}
-		// |packSet| <= (firstFinal - lastInitial + 1 - max{part[i] - nKnownDays[i]| i in atores} + 1)
+		// |packSet| <= (lastUnknown - firstUnknown + 1 - max{part[i] - nKnownDays[i]| i in atores} + 1)
 		vector<bool> packSet(nScenes, false);
 		// Cenas ainda não decididas.
 		for (int j = 0; j < nScenes; j++){
@@ -681,6 +664,43 @@ class Schedule {
 
 	/* Calcula o limitante do no */
 	void bound() {
+		int chosen_day;
+		// Indica o primeiro dia de cada ator
+		vector<int> first(nActors, nScenes);
+		// Indica o ultimo dia de cada ator
+		vector<int> last(nActors, -1);
+		// Indica numero de dias conhecidos por ator
+		vector<int> nKnownDays(nActors, 0);
+		// Ultima cena escolhida
+
+		for (int i = 0; i < nActors; i++) {
+			for (int l = 0; l < nScenes; l++){
+				if(scene[l] != -1 and T[i][scene[l]]){
+					nKnownDays[i]++;
+					if (l < first[i]) first[i] = l;
+					if (l >  last[i])  last[i] = l;
+				}
+			}
+			/*
+			for (int l = firstUnknown - 1; l >= 0; l--){
+				if (T[i][scene[l]]){
+					nKnownDays[i]++;
+					if (l < first[i]){
+						first[i] = l;
+					}
+				}
+			}
+			for (int l = lastUnknown + 1; l < nScenes; l++){
+				if (T[i][scene[l]]){
+					nKnownDays[i]++;
+					if (l > last[i]){
+						last[i] = l;
+					}
+				}
+			}
+			*/
+		}
+
 		int k1 = 0;
 		// Calcula k1
 		for (int i = 0; i < nActors; i++) {
@@ -689,8 +709,8 @@ class Schedule {
 				PS: O novo if é mais restrito e acho que não precisa mais testar se aux > 0
 				mas eu deixei assim por enquanto
 			*/
-			// i in A(P) <==> first[i] < lastInitial and last[i] >= firstFinal
-			if ((first[i] < lastInitial and last[i] >= firstFinal) or nKnownDays[i] == part[i]){
+			// i in A(P) <==> first[i] < firstUnknown and last[i] >= lastUnknown
+			if ((first[i] < firstUnknown and last[i] >= lastUnknown) or nKnownDays[i] == part[i]){
 				#ifdef DEBUG
 				where[i] = A;
 				#endif // DEBUG
@@ -704,14 +724,14 @@ class Schedule {
 		// Calcula k2
 
 		for (int i = 0; i < nActors; i++){
-			// i in B_E(P) <==> first[i] < lastInitial and not in A(P)
-			if (first[i] < lastInitial and last[i] < firstFinal and nKnownDays[i] < part[i]){
+			// i in B_E(P) <==> first[i] < firstUnknown and not in A(P)
+			if (first[i] < firstUnknown and last[i] < lastUnknown and nKnownDays[i] < part[i]){
 				int sum = 0;
 				#ifdef DEBUG
 				where[i] = B_E;
 				#endif // DEBUG
-				// Soma 0's de first[i] até lastInitial
-				for (int l = first[i]; l < lastInitial; l++){
+				// Soma 0's de first[i] até firstUnknown
+				for (int l = first[i]; l < firstUnknown; l++){
 					sum += 1 - T[i][scene[l]];
 				}
 				#ifdef DEBUG
@@ -722,13 +742,13 @@ class Schedule {
 		}
 
 		for (int i = 0; i < nActors; i++){
-			// i in B_D(P) <==> last[i] >= firstFinal and not in A(P)
-			if (last[i] >= firstFinal and first[i] >= lastInitial and nKnownDays[i] < part[i]){
+			// i in B_D(P) <==> last[i] >= lastUnknown and not in A(P)
+			if (last[i] >= lastUnknown and first[i] >= firstUnknown and nKnownDays[i] < part[i]){
 				int sum = 0;
 				#ifdef DEBUG
 				where[i] = B_D;
 				#endif // DEBUG
-				for (int l = last[i]; l > firstFinal; l--){
+				for (int l = last[i]; l > lastUnknown; l--){
 					sum += 1 - T[i][scene[l]];
 				}
 				#ifdef DEBUG
@@ -747,8 +767,8 @@ class Schedule {
 		vector< pair<int, int > > vecB_E;
 		for (int i = 0; i < nActors; i++){
 			// if i in B_E
-			if (first[i] < lastInitial and last[i] < firstFinal and nKnownDays[i] < part[i]){
-				vecB_E.push_back(make_pair(firstFinal+1-lastInitial-(part[i]-nKnownDays[i]),i));
+			if (first[i] < firstUnknown and last[i] < lastUnknown and nKnownDays[i] < part[i]){
+				vecB_E.push_back(make_pair(lastUnknown+1-firstUnknown-(part[i]-nKnownDays[i]),i));
 			}
 		}
 		// sort vecB_E descending
@@ -781,8 +801,8 @@ class Schedule {
 		vector< pair<int, int > > vecB_D;
 		for (int i = 0; i < nActors; i++){
 			// if i in B_D
-			if (last[i] >= firstFinal and first[i] >= lastInitial and nKnownDays[i] < part[i]){
-				vecB_D.push_back(make_pair(firstFinal+1-lastInitial-(part[i]-nKnownDays[i]),i));
+			if (last[i] >= lastUnknown and first[i] >= firstUnknown and nKnownDays[i] < part[i]){
+				vecB_D.push_back(make_pair(lastUnknown+1-firstUnknown-(part[i]-nKnownDays[i]),i));
 			}
 		}
 		// sort vecB_D descending
@@ -861,8 +881,8 @@ ostream& operator<<(ostream& os, const Schedule& s) {
 	if (s.boundVal > 0){
 		os << "limitante \t" << s.boundVal << endl;
 	}
-	os << "lastInitial \t " << s.lastInitial << endl;
-	os << "firstFinal \t " << s.firstFinal << endl;
+	os << "firstUnknown \t " << s.firstUnknown << endl;
+	os << "lastUnknown \t " << s.lastUnknown << endl;
 
 	return os;
 }
