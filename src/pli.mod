@@ -38,31 +38,49 @@ s.t. unicidade_de_cenas{d in DIAS}:
 s.t. unicidade_de_dias{sc in CENAS}:
 	sum{d in DIAS} Permutacao[sc,d] == 1;
 
-var Schedule{o in OPCOES, a in ATORES, d in DIAS}, binary;
+/*
+var Inicio{a in ATORES, d in DIAS}, binary;
+s.t. inicio_decrescente{a in ATORES, d in {1..nD-1}}:
+	Inicio[a,d] >= Inicio[a,d+1];
+
+var Gravacao{a in ATORES, d in DIAS}, >= 0, <= 1;
+s.t. define_gravacao{a in ATORES, d in DIAS}:
+	sum{sc in CENAS} T[a,sc] * Permutacao[sc,d] == Gravacao[a,d];
+
+var Final{a in ATORES, d in DIAS}, binary;
+s.t.  final_crescente {a in ATORES, d in {1..nD-1}}:
+	Final[a,d] <= Final[a,d+1];
+
+var Espera{a in ATORES, d in DIAS}, >= 0, <= 1;
+s.t. restringe_opcoes{a in ATORES, d in DIAS}:
+	Inicio[a,d] + Gravacao[a,d] + Espera[a,d] + Final[a,d] == 1;
+*/
+
+var Schedule{o in OPCOES, a in ATORES, d in DIAS}, >= 0, <= 1;
 
 s.t. define_gravacao{a in ATORES, d in DIAS}:
 	sum{sc in CENAS} T[a,sc] * Permutacao[sc,d] == Schedule[2,a,d];
 
+s.t. inicio_decrescente{a in ATORES, d in {1..nD-1}}:
+	Schedule[1,a,d] >= Schedule[1,a,d+1];
+
 s.t. restringe_opcoes{a in ATORES, d in DIAS}:
 	sum{o in OPCOES} Schedule[o,a,d] == 1;
-/*INICIO*/
-s.t. decrescente{a in ATORES, d in {1..nD-1}}:
-	Schedule[1,a,d] >= Schedule[1,a,d+1];
-/*FINAL*/
-s.t.  crescente {a in ATORES, d in {1..nD-1}}:
+
+s.t. final_crescente {a in ATORES, d in {1..nD-1}}:
 	Schedule[4,a,d] <= Schedule[4,a,d+1];
 
-var espera{a in ATORES},integer, >= 0, <= nD;
-s.t. dfine_espera{a in ATORES}:
-	espera[a] == sum{d in DIAS} Schedule[3,a,d];
 /*
+var espera{a in ATORES},integer, >= 0, <= nD;
+s.t. define_espera{a in ATORES}:
+	espera[a] == sum{d in DIAS} Schedule[3,a,d];
 var custo{a in ATORES},integer, >= 0;
 s.t. define_custo{a in ATORES}:
 	custo[a] == espera[a] * salario[a];
 */
 var custoTotal, integer, >= 0;
 s.t. define_custoTotal:
-	custoTotal == sum{a in ATORES} espera[a] * salario[a]; /*custo[a];*/
+	custoTotal == sum{a in ATORES} salario[a] * sum{d in DIAS} Schedule[3,a,d]; /*custo[a];*/
 
 /* ===> funcao objetivo */
 minimize custo_minimo:
