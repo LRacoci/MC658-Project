@@ -26,8 +26,8 @@ vector<int> melhor_solucao;
 int melhor_custo = INF;
 
 /*Variáveis que definem o problema que esta sendo resolvido e guarda as suas informacoes */
-int n, // number of scenes
-    m; // number of actors
+int nScenes, // number of scenes
+    nActors; // number of actors
 
 MAT(int) T;         // m x n
 vector<int> cost;   // Vetor com os custos das cenas
@@ -44,7 +44,7 @@ void imprime_saida() {
 
 void atualiza_solucao(const vector<int> &solucao, int custo) {
     escrevendo = 1;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < nScenes; i++) {
         melhor_solucao[solucao[i]] = i + 1;
     }
     melhor_custo = custo;
@@ -69,9 +69,9 @@ void interrompe(int signum) {
 
 /* Calcula os s_i's do enunciado */
 void compute_part() {
-    part.resize(m, 0);
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
+    part.resize(nActors, 0);
+    for (int i = 0; i < nActors; i++) {
+        for (int j = 0; j < nScenes; j++) {
             part[i] += T[i][j];
         }
     }
@@ -89,8 +89,8 @@ public:
     int aptidao;
 
     Permutation() {
-        scenes.resize(n);
-        for (int i = 0; i < n; i++) {
+        scenes.resize(nScenes);
+        for (int i = 0; i < nScenes; i++) {
             scenes[i] = i;
         }
         aptidao = INF;
@@ -104,7 +104,7 @@ public:
     /* Calcula a aptidao do individuo */
     void calculaAptidao() {
         aptidao = 0;
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < nActors; i++) {
             int aux = 0, part_aux = part[i];
             if (part_aux > 0) {
                 while (T[i][scenes[aux]] != 1) {
@@ -130,12 +130,6 @@ public:
         scenes[index2] = aux;
     }
 
-};
-
-struct compare {
-    bool operator()(const Permutation &l, const Permutation &r) {
-        return l.aptidao < r.aptidao;
-    }
 };
 
 /* Classe que representa uma populacao */
@@ -175,7 +169,7 @@ public:
         for (j = 0; j < tamanho_real; j++) {
             if (i != j) {
                 igual = true;
-                for (k = 0; k < n; k++) {
+                for (k = 0; k < nScenes; k++) {
                     if (P[i].scenes[k] != P[j].scenes[k]) {
                         igual = false;
                         break;
@@ -236,7 +230,7 @@ int metodo_mutacao = 0;
 void cruzamentos(Populacao & Pop) {
     int pai1, pai2, index1, index2, aux, j, k;
     vector<bool> escolhidos;
-    escolhidos.resize(n);
+    escolhidos.resize(nScenes);
 
     for (int i = TAM_POPULACAO + TAM_MUTACAO; i < TAM_POPULACAO + TAM_MUTACAO + TAM_CRUZAMENTO; i++) {
         /* Escolhe dois pais para o cruzamento */
@@ -251,7 +245,7 @@ void cruzamentos(Populacao & Pop) {
          * aparecem, ou faz o mesmo processo escolhendo uma regiao interior
          * do primeiro pai e completa com a ordem dos elementos do outro pai */
         if (metodo_cruzamento % 2 == 0) {
-            index1 = rand() % n;
+            index1 = rand() % nScenes;
             j = 0;
             while (j <= index1) {
                 aux = Pop.P[pai1].scenes[j];
@@ -259,7 +253,7 @@ void cruzamentos(Populacao & Pop) {
                 Pop.P[i].scenes[j] = aux;
                 j++;
             }
-            for (k = 0; k < n; k++) {
+            for (k = 0; k < nScenes; k++) {
                 aux = Pop.P[pai2].scenes[k];
                 if (!escolhidos[aux]) {
                     escolhidos[aux] = true;
@@ -269,8 +263,8 @@ void cruzamentos(Populacao & Pop) {
             }
         } else {
             do {
-                index1 = rand() % n;
-                index2 = rand() % n;
+                index1 = rand() % nScenes;
+                index2 = rand() % nScenes;
             } while (index1 == index2);
             if (index1 > index2) {
                 aux = index1;
@@ -296,7 +290,7 @@ void cruzamentos(Populacao & Pop) {
                 j++;
             }
             k = index2 + 1;
-            while (k < n) {
+            while (k < nScenes) {
                 aux = Pop.P[pai2].scenes[j];
                 if (!escolhidos[aux]) {
                     escolhidos[aux] = true;
@@ -317,8 +311,8 @@ void mutacoes(Populacao & Pop) {
     for (int i = TAM_POPULACAO; i < TAM_POPULACAO + TAM_MUTACAO; i++) {
         /* Escolhe dois indices distintos e um individuo da populacao */
         do {
-            index1 = rand() % n;
-            index2 = rand() % n;
+            index1 = rand() % nScenes;
+            index2 = rand() % nScenes;
         } while (index1 == index2);
         individuo = rand() % TAM_POPULACAO;
         Pop.P[i] = Pop.P[individuo];
@@ -348,7 +342,7 @@ void mutacoes(Populacao & Pop) {
             }
             /* Exclui as bordas para fazer o inverso, pois
              * inverter toda a permutacao mantem o custo */
-            if (index1 == 0 and index2 == n - 1) {
+            if (index1 == 0 and index2 == nScenes - 1) {
                 index1++;
                 index2--;
             }
@@ -389,14 +383,14 @@ void le_entrada(FILE * inp) {
     if (not inp) {
         exit(1);
     }
-    //cin >> n >> m;
-    if (fscanf(inp, "%d\n%d", &n,&m)==EOF) {
+    //cin >> nScenes >> nActors;
+    if (fscanf(inp, "%d\n%d", &nScenes,&nActors)==EOF) {
         exit(1);
     }
-    T.resize(m);
-    for (i = 0; i < m; i++) {
-        T[i].resize(n);
-        for (j = 0; j < n; j++) {
+    T.resize(nActors);
+    for (i = 0; i < nActors; i++) {
+        T[i].resize(nScenes);
+        for (j = 0; j < nScenes; j++) {
             //cin >> T[i][j];
             if (fscanf(inp, "%d",&T[i][j])==EOF) {
                 exit(1);
@@ -404,8 +398,8 @@ void le_entrada(FILE * inp) {
         }
     }
 
-    cost.resize(m);
-    for (i = 0; i < m; i++) {
+    cost.resize(nActors);
+    for (i = 0; i < nActors; i++) {
         //cin >> cost[i];
         if (fscanf(inp, "%d",&cost[i])==EOF) {
             exit(1);
@@ -435,7 +429,7 @@ int main(int argc, char * argv[]) {
     /* Le os dados do problema */
     le_entrada(dataFile);
 
-    melhor_solucao.resize(n);
+    melhor_solucao.resize(nScenes);
     compute_part();
 
     /* Resolve o problema */
