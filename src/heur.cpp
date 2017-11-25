@@ -83,12 +83,12 @@ void compute_part() {
 #define TAM_CRUZAMENTO 10
 
 /* Classe que representa um individuo, ou solucao */
-class Schedule {
+class Permutation {
 public:
     vector<int> scenes;
     int aptidao;
 
-    Schedule() {
+    Permutation() {
         scenes.resize(n);
         for (int i = 0; i < n; i++) {
             scenes[i] = i;
@@ -97,7 +97,7 @@ public:
     }
 
     /* Cria uma permutacao aleatoria */
-    void criaSchedule() {
+    void criaPermutation() {
         random_shuffle(scenes.begin(),scenes.end());
     }
 
@@ -106,15 +106,17 @@ public:
         aptidao = 0;
         for (int i = 0; i < m; i++) {
             int aux = 0, part_aux = part[i];
-            while (aux < n and T[i][scenes[aux]] != 1) {
-                aux++;
-            }
-            for (int j = aux; part_aux > 0; j++){
-                if (T[i][scenes[j]] == 1) {
-                    part_aux -= 1;
-                } else {
-                    if (part_aux > 0) {
-                        aptidao += cost[i];
+            if (part_aux > 0) {
+                while (T[i][scenes[aux]] != 1) {
+                    aux++;
+                }
+                for (int j = aux; part_aux > 0; j++){
+                    if (T[i][scenes[j]] == 1) {
+                        part_aux -= 1;
+                    } else {
+                        if (part_aux > 0) {
+                            aptidao += cost[i];
+                        }
                     }
                 }
             }
@@ -131,7 +133,7 @@ public:
 };
 
 struct compare {
-    bool operator()(const Schedule &l, const Schedule &r) {
+    bool operator()(const Permutation &l, const Permutation &r) {
         return l.aptidao < r.aptidao;
     }
 };
@@ -139,7 +141,7 @@ struct compare {
 /* Classe que representa uma populacao */
 class Populacao {
 public:
-    vector<Schedule> P;
+    vector<Permutation> P;
     int tamanho_real;
 
     Populacao() {
@@ -150,21 +152,26 @@ public:
 
     /* Inicializa a populacao com permutacoes aleatorias */
     void inicializaPopulacao() {
+        /* Gera individuos diferentes entre si */
         for (int i = 0; i < TAM_POPULACAO; i++) {
             tamanho_real++;
             do {
-                P[i].criaSchedule();
+                P[i].criaPermutation();
             } while (existeDuplicata(i));
         }
+
+        /* Calcula a aptidao */
         for (int i = 0; i < TAM_POPULACAO; i++) {
             P[i].calculaAptidao();
         }
+
     }
 
     /* Checa se a permutacao i esta repetida */
     bool existeDuplicata(int i) {
         int j, k;
         bool igual;
+
         for (j = 0; j < tamanho_real; j++) {
             if (i != j) {
                 igual = true;
@@ -179,15 +186,40 @@ public:
                 }
             }
         }
+
         return false;
     }
 
     /* Atualiza o melhor individuo */
     void atualizaMelhor() {
+        vector<Permutation> aux(TAM_POPULACAO);
+        int index;
+
+        /* Calcula a aptidao dos novos individuos */
         for (int i = TAM_POPULACAO; i < TAM_POPULACAO + TAM_CRUZAMENTO + TAM_MUTACAO; i++) {
             P[i].calculaAptidao();
         }
-        sort(P.begin(), P.end(), compare());
+
+        /* Procura o menor individuo */
+        int min = 0;
+        for (int i = 1; i < TAM_POPULACAO + TAM_CRUZAMENTO + TAM_MUTACAO; i++) {
+            if (P[i].aptidao <= P[min].aptidao) {
+                min = i;
+            }
+        }
+        aux[0] = P[min];
+
+        /* Sorteia o resto dos individuos da populacao */
+        for (int i = 1; i < TAM_POPULACAO; i++) {
+            index = (rand() % (TAM_POPULACAO + TAM_MUTACAO + TAM_CRUZAMENTO - 1)) + 1;
+            aux[i] = P[index];
+        }
+
+        for (int i = 0; i < TAM_POPULACAO; i++) {
+            P[i] = aux[i];
+        }
+
+        /* Atualiza o melhor custo e a melhor solucao */
         if (P[0].aptidao < melhor_custo) {
             atualiza_solucao(P[0].scenes, P[0].aptidao);
         }
