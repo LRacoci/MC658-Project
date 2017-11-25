@@ -674,19 +674,22 @@ class Schedule {
 		// Ultima cena escolhida
 
 		for (int i = 0; i < nActors; i++) {
-			for (int l = 0; l < nScenes; l++){
+			/*for (int l = 0; l < nScenes; l++){
 				if(scene[l] != -1 and T[i][scene[l]]){
 					nKnownDays[i]++;
 					if (l < first[i]) first[i] = l;
 					if (l >  last[i])  last[i] = l;
 				}
-			}
-			/*
+			}*/
+			
 			for (int l = firstUnknown - 1; l >= 0; l--){
 				if (T[i][scene[l]]){
 					nKnownDays[i]++;
 					if (l < first[i]){
 						first[i] = l;
+					}
+					if (l > last[i]){
+						last[i] = l;
 					}
 				}
 			}
@@ -696,9 +699,12 @@ class Schedule {
 					if (l > last[i]){
 						last[i] = l;
 					}
+					if (l < first[i]){
+						first[i] = l;
+					}
 				}
 			}
-			*/
+			
 		}
 
 		int k1 = 0;
