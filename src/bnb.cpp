@@ -579,7 +579,7 @@ ostream& operator<<(ostream& os, const Schedule& s) {
 /* Funcao de comparacao para se obter um heap de minimo */
 struct compare {
     bool operator()(const Schedule &l, const Schedule &r) {
-        return l.depth < r.depth or (l.depth == r.depth and l.boundVal > r.boundVal);
+        return l.boundVal < r.boundVal or (l.boundVal == r.boundVal and l.depth > r.depth);
     }
 };
 
