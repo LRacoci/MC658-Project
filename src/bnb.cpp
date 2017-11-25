@@ -473,7 +473,7 @@ class Schedule {
 
 	#endif // DEBUG
 
-	vector<Schedule> offspring; // Cria os filhos do no atual
+	//vector<Schedule> offspring; // Cria os filhos do no atual
 
 	/* Cria o objeto inicial (raiz) de Schedule */
 	Schedule() {
@@ -547,7 +547,7 @@ class Schedule {
 	}
 
 	/* Retorna os filhos do no corrente */
-	vector<Schedule> &branch() {
+	void branch(vector<Schedule> &offspring) {
 
 		for (int j = 0; j < nScenes; j++) {
 			if (day[j] == -1){
@@ -558,7 +558,7 @@ class Schedule {
 			}
 		}
 
-		return offspring;
+		//return offspring;
 	}
 
 	friend ostream& operator<<(ostream& os, const Schedule& s);
@@ -896,7 +896,8 @@ void solve() {
 			melhor_limitante = topAtivo.boundVal;
 			/* Gera os filhos do no ativo, calcula os limitantes e continua o processo */
 			nos_visitados++;
-			vector<Schedule> &offspring = topAtivo.branch();
+			vector<Schedule> offspring;
+			topAtivo.branch(offspring);
 			/* Trata cada filho separadamente */
 			for (int j = 0; j < offspring.size(); j++) {
 				offspring[j].bound();
@@ -964,6 +965,7 @@ int main(int argc, char * argv[]) {
 
 	/* Le os dados do problema */
 	le_entrada(dataFile);
+	fclose(dataFile);
 
 	//s_i's do enunciado
 	initializeGlobals();
