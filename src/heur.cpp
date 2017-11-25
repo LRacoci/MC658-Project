@@ -368,14 +368,17 @@ void solve() {
     /* Seta a semente do algoritmo pseudo-aleatorio */
     srand(unsigned(time(NULL)));
     
-    /* Cria a populacao inicial */
-    Populacao Pop;
-
-    /* Fica recalculando iterativamente o algoritmo ate o tempo acabar */
+    /* Utiliza o algoritmo genetico varias vezes */
     while (1) {
-        cruzamentos(Pop);
-        mutacoes(Pop);
-        Pop.atualizaMelhor();
+        /* Cria a populacao inicial */
+        Populacao Pop;
+
+        /* Fica recalculando iterativamente o algoritmo ate o tempo acabar */
+        for (int i = 0; i < 10000; i++) {
+            cruzamentos(Pop);
+            mutacoes(Pop);
+            Pop.atualizaMelhor();
+        }
     }
 
 }
