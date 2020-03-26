@@ -1,0 +1,60 @@
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;erro;erro;erro;erro;erro
+e1006.dat;erro;erro;erro;erro;erro
+e1008.dat;erro;erro;erro;erro;erro
+e1010.dat;erro;erro;erro;erro;erro
+e1206.dat;erro;erro;erro;erro;erro
+e1208.dat;erro;erro;erro;erro;erro
+e1210.dat;erro;erro;erro;erro;erro
+e1211.dat;erro;erro;erro;erro;erro
+e1410.dat;erro;erro;erro;erro;erro
+e1411.dat;erro;erro;erro;erro;erro
+e1808.dat;erro;erro;erro;erro;erro
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;erro;erro;erro;erro;erro
+e1006.dat;erro;erro;erro;erro;erro
+e1008.dat;erro;erro;erro;erro;erro
+e1010.dat;erro;erro;erro;erro;erro
+e1206.dat;erro;erro;erro;erro;erro
+e1208.dat;erro;erro;erro;erro;erro
+e1210.dat;erro;erro;erro;erro;erro
+e1211.dat;erro;erro;erro;erro;erro
+e1410.dat;erro;erro;erro;erro;erro
+e1411.dat;erro;erro;erro;erro;erro
+e1808.dat;erro;erro;erro;erro;erro
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;1 5 2 4 7 6 3 8;4;4.00;183;0.24
+e1006.dat;3 1 9 5 7 10 2 4 6 8;12;12.00;1097;2.31
+e1008.dat;8 2 10 3 4 1 5 7 6 9;24;24.00;1687;6.14
+e1010.dat;7 10 2 1 9 4 3 5 8 6;51;51.00;12115;85.49
+e1206.dat;5 8 6 12 4 2 10 11 7 3 9 1;22;8.00;36229;180.03
+e1208.dat;10 3 6 2 1 11 4 7 12 8 9 5;69;0.00;25065;180.04
+e1210.dat;7 6 4 8 11 10 5 1 2 12 9 3;81;0.00;17489;180.05
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;1 5 2 4 7 6 3 8;4;4.00;183;0.20
+e1006.dat;3 1 9 5 7 10 2 4 6 8;12;12.00;1097;2.30
+e1008.dat;8 2 10 3 4 1 5 7 6 9;24;24.00;1687;5.79
+e1010.dat;7 10 2 1 9 4 3 5 8 6;51;51.00;12115;84.26
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;8 5 7 4 3 2 6 1;4;4.00;269;0.12
+e1006.dat;8 10 2 7 4 1 9 6 5 3;12;12.00;4023;3.56
+e1008.dat;7 1 9 2 4 10 3 6 5 8;24;24.00;6513;8.68
+e1010.dat;7 10 2 1 9 5 3 4 8 6;51;51.00;51805;133.26
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;8 4 7 5 2 3 6 1;4;4.00;549;0.34
+e1006.dat;8 10 2 7 4 1 9 6 5 3;12;12.00;5355;4.88
+e1008.dat;3 9 1 8 5 10 7 4 6 2;24;24.00;9359;13.06
+e1010.dat;4 1 10 8 2 7 9 6 3 5;51;51.00;14037;27.93
+e1206.dat;7 8 5 12 3 2 10 11 6 4 9 1;22;2.00;58065;180.02
+e1208.dat;3 4 7 2 1 9 5 8 12 10 11 6;92;0.00;55023;180.04
+e1210.dat;3 8 11 7 4 5 9 1 12 2 6 10;101;0.00;51079;180.33
+e1211.dat;4 1 9 2 11 6 8 5 7 12 10 3;105;0.00;48321;180.07
+e1410.dat;12 8 7 14 2 13 3 11 10 1 9 6 4 5;140;0.00;45309;180.06
+e1411.dat;14 6 8 12 11 2 3 10 5 13 9 1 4 7;137;0.00;39741;180.07
+e1808.dat;16 5 15 1 11 3 7 13 2 17 6 14 9 4 8 18 12 10;160;0.00;36791;180.07

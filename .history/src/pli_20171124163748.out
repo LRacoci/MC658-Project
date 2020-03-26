@@ -1,0 +1,9 @@
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;8 4 7 5 2 3 6 1;4;4.00;549;0.43
+e1006.dat;8 10 2 7 4 1 9 6 5 3;12;12.00;5355;4.65
+Resultados: pli
+Instancia;Solucao;Custo;Lim. Inf.;Nos;Tempo
+e0806.dat;8 4 7 5 2 3 6 1;4;4.00;549;0.34
+e1006.dat;8 10 2 7 4 1 9 6 5 3;12;12.00;5355;5.51
+e1008.dat;3 9 1 8 5 10 7 4 6 2;24;24.00;9359;12.69
